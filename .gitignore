@@ -1,0 +1,38 @@
+# Environment — contains API keys
+.env
+.env.local
+.env.*.local
+
+# CV — private personal document
+cv.txt
+*.pdf
+*.docx
+*.doc
+
+# Database — contains personal job-search data
+*.db
+*.sqlite
+backend/data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
