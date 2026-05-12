@@ -176,7 +176,7 @@ export default function JobTable({
                 <th className="px-2 py-3 w-6"></th>
                 <th className="px-4 py-3 text-left"><SortHeader label="Role" field="title" /></th>
                 <th className="px-4 py-3 text-left hidden md:table-cell">
-                  <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Company</span>
+                  <SortHeader label="Company" field="company" />
                 </th>
                 <th className="px-4 py-3 text-left hidden lg:table-cell">
                   <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Source</span>

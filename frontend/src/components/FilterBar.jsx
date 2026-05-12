@@ -33,6 +33,7 @@ const SORTS = [
   { value: "scraped_at", label: "Date Found" },
   { value: "cv_score", label: "CV Score" },
   { value: "posted_at", label: "Date Posted" },
+  { value: "company", label: "Company" },
 ];
 
 function Chip({ label, active, onClick, icon: Icon }) {
@@ -94,7 +95,7 @@ export default function FilterBar({ filters, onChange, stats }) {
           <input
             ref={searchRef}
             type="text"
-            placeholder="Search title, company, description…"
+            placeholder="Search title or type…"
             value={filters.q}
             onChange={(e) => onChange("q", e.target.value)}
             className="w-full bg-surface-1 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
@@ -137,7 +138,7 @@ export default function FilterBar({ filters, onChange, stats }) {
           onClick={() => onChange("order", filters.order === "desc" ? "asc" : "desc")}
           className="bg-surface-1 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-surface-2 transition-colors"
         >
-          {filters.order === "desc" ? "↓ Newest" : "↑ Oldest"}
+          {filters.order === "desc" ? "↓ Desc" : "↑ Asc"}
         </button>
       </div>
 

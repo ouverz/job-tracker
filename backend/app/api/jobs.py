@@ -9,7 +9,7 @@ from ..constants import DEFAULT_PAGE_SIZE
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
 VALID_STATUSES = {"new", "applied", "rejected", "pending", "archived", "interview"}
-VALID_SORTS = {"scraped_at", "cv_score", "posted_at", "created_at", "title"}
+VALID_SORTS = {"scraped_at", "cv_score", "posted_at", "created_at", "title", "company"}
 ALLOWED_UPDATE_FIELDS = {"status", "notes", "applied_at", "starred", "follow_up_at"}
 
 
@@ -98,9 +98,9 @@ def list_jobs(
         params.append(cutoff)
 
     if q:
-        conditions.append("(title LIKE ? OR company LIKE ? OR description LIKE ?)")
+        conditions.append("(title LIKE ? OR employment_type LIKE ?)")
         like = f"%{q}%"
-        params.extend([like, like, like])
+        params.extend([like, like])
 
     if starred is not None:
         conditions.append("starred = ?")
@@ -221,6 +221,30 @@ def get_job(job_id: int):
     return dict(row)
 
 
+class BatchStatusUpdate(BaseModel):
+    job_ids: list[int]
+    status: str
+
+
+# NOTE: /batch-status must be registered BEFORE /{job_id} so FastAPI doesn't
+# try to coerce "batch-status" to an int and return 422.
+@router.patch("/batch-status", response_model=dict)
+def batch_update_status(update: BatchStatusUpdate):
+    if update.status not in VALID_STATUSES:
+        raise HTTPException(400, f"Invalid status: {update.status}")
+    if not update.job_ids:
+        raise HTTPException(400, "No job IDs provided")
+
+    now = datetime.utcnow().isoformat()
+    placeholders = ",".join("?" * len(update.job_ids))
+    with db() as conn:
+        conn.execute(
+            f"UPDATE jobs SET status = ?, status_changed_at = ?, updated_at = ? WHERE id IN ({placeholders})",
+            [update.status, now, now] + update.job_ids,
+        )
+    return {"updated": len(update.job_ids)}
+
+
 @router.patch("/{job_id}", response_model=Job)
 def update_job(job_id: int, update: JobUpdate):
     fields = {k: v for k, v in update.model_dump().items() if v is not None and k in ALLOWED_UPDATE_FIELDS}
@@ -251,28 +275,6 @@ def update_job(job_id: int, update: JobUpdate):
     if not row:
         raise HTTPException(404, "Job not found")
     return dict(row)
-
-
-class BatchStatusUpdate(BaseModel):
-    job_ids: list[int]
-    status: str
-
-
-@router.patch("/batch-status", response_model=dict)
-def batch_update_status(update: BatchStatusUpdate):
-    if update.status not in VALID_STATUSES:
-        raise HTTPException(400, f"Invalid status: {update.status}")
-    if not update.job_ids:
-        raise HTTPException(400, "No job IDs provided")
-
-    now = datetime.utcnow().isoformat()
-    placeholders = ",".join("?" * len(update.job_ids))
-    with db() as conn:
-        conn.execute(
-            f"UPDATE jobs SET status = ?, status_changed_at = ?, updated_at = ? WHERE id IN ({placeholders})",
-            [update.status, now, now] + update.job_ids,
-        )
-    return {"updated": len(update.job_ids)}
 
 
 @router.delete("/{job_id}", status_code=204)

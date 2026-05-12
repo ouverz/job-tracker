@@ -77,6 +77,35 @@ CV upload and status.
 
 ---
 
+### `analysis.py` — mount: `/api/analysis`
+
+Skills gap analysis — aggregates `gaps` and `strengths` from `cv_score_breakdown` JSON across all scored jobs.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/analysis/gaps` | Frequency-ranked gaps and strengths across scored jobs |
+
+**Filter params**: `min_score` (float 0–100, default 0), `status` (comma-separated), `source` (comma-separated). Returns `{ total_scored, gaps: [{text, count}], strengths: [{text, count}] }` sorted by count descending, top 30 each.
+
+---
+
+### `activity_log.py` — mount: `/api/activity-log`
+
+Weekly activity tracking with goal-setting and auto-tracked metrics.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/activity-log` | Return all activities for the requested week with targets, actuals, and status. Pass `?week=YYYY-MM-DD` (any date in the week); defaults to current week. |
+| `PATCH` | `/api/activity-log/{week_start}/{activity}` | Update `target` and/or `actual` for one activity in a week. Auto-tracked activities (see below) ignore `actual` writes — their values are computed from the DB. |
+
+**Activities:** `applications_sent` (auto: jobs with `status=applied` for the week), `outreach_sequences`, `hiring_manager_conversations`, `linkedin_posts`, `first_round_interviews`, `second_round_processes`, `network_reconnects` (auto: contacts with `reached_out=1` for the week), `github_commits`.
+
+**Status logic:** `target=0` → `n/a`; `actual >= target` → `on_track`; otherwise `behind`.
+
+**Storage:** Manual actuals and all targets persist in the `weekly_log` table (primary key: `week_start + activity`). First access to a week uses hardcoded defaults.
+
+---
+
 ### `enrichment.py` — mount: `/api/enrichment`
 
 Title-based archiving and description backfill.
@@ -85,5 +114,5 @@ Title-based archiving and description backfill.
 |--------|------|-------------|
 | `GET` | `/api/enrichment/title-filter-preview` | Dry-run: show which jobs would be archived or kept |
 | `POST` | `/api/enrichment/title-filter-apply` | Archive jobs whose titles don't match keep patterns |
-| `POST` | `/api/enrichment/backfill-descriptions` | Start background fetch of missing job descriptions |
+| `POST` | `/api/enrichment/backfill-descriptions` | Start background fetch of missing job descriptions. Query params: `sources` (comma-sep: stepstone,linkedin,indeed), `limit` (default 300), `status` (e.g. `new`) |
 | `GET` | `/api/enrichment/backfill-status` | Poll backfill progress |

@@ -10,7 +10,7 @@ Job Tracker is a personal job-search dashboard that automates the discovery and 
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Multi-source scraping (Arbeitnow, StepStone, LinkedIn/Indeed, Hays, yer, Orange Quarter) | ✅ Done | Concurrent via ThreadPoolExecutor |
+| Multi-source scraping (Arbeitnow, StepStone, LinkedIn/Indeed, Jobware, Hays, yer, Orange Quarter) | ✅ Done | Concurrent via ThreadPoolExecutor |
 | 3-strategy deduplication (URL, content_hash, fuzzy company) | ✅ Done | `scrapers/runner.py` |
 | Scheduled daily scrape (08:00) | ✅ Done | APScheduler in `main.py` |
 | Job filtering (status, source, type, location, score, text search) | ✅ Done | `api/jobs.py` dynamic query builder |
@@ -26,6 +26,8 @@ Job Tracker is a personal job-search dashboard that automates the discovery and 
 | Follow-up reminders (overdue highlight) | ✅ Done | `JobDrawer.jsx` + `JobTable.jsx` |
 | Bulk status update | ✅ Done | `JobTable.jsx` + `api/jobs.py` batch-status |
 | Starred jobs | ✅ Done | Filter + star button in table |
+| Skills gap analysis (frequency chart) | ✅ Done | `api/analysis.py` `/gaps` endpoint + `GapAnalysis.jsx` |
+| Weekly activity log (targets vs actuals) | ✅ Done | `api/activity_log.py` + `ActivityLog.jsx`; auto-tracks applications & network reconnects from DB |
 
 ---
 
@@ -51,6 +53,8 @@ job-tracker/
 │   │   │   ├── scraping.py
 │   │   │   ├── contacts.py
 │   │   │   ├── cv.py
+│   │   │   ├── analysis.py
+│   │   │   ├── activity_log.py
 │   │   │   └── enrichment.py
 │   │   ├── services/                # Business logic
 │   │   │   ├── README.md
@@ -65,6 +69,7 @@ job-tracker/
 │   │       ├── utils.py
 │   │       ├── arbeitnow.py
 │   │       ├── jobspy_scraper.py
+│   │       ├── jobware.py
 │   │       ├── stepstone.py
 │   │       ├── hays.py
 │   │       ├── yer.py

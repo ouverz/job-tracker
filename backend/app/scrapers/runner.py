@@ -10,23 +10,24 @@ _db_write_lock = threading.Lock()  # serialise concurrent upserts across scraper
 
 from ..database import db
 from ..scrapers import (
-    ArbeitnowScraper, JobSpyScraper, StepStoneScraper,
+    ArbeitnowScraper, JobSpyScraper, JobwareScraper, StepStoneScraper,
     YerScraper, HaysScraper, OrangeQuarterScraper,
 )
 from ..scrapers.base import JobPosting
 from ..scrapers.filters import apply_filters
 
 # Dead/JS-rendered scrapers removed 2026-03:
-#   jobware   — requires JavaScript (returns "Bitte aktivieren Sie Javascript")
 #   thryve    — domain changed to thryve.health, no accessible DE data jobs
 #   deeprec   — JS SPA, no public API
 #   xcede     — JS SPA, no public API
 #   peritus   — Wix JS site, only ~10 jobs, no accessible card structure
 #   redrecruitment — no actual job listings on their page
+# Jobware restored 2026-04: internal JSON API discovered at /api/d48b2/xnfwe
 
 SCRAPER_MAP = {
     "arbeitnow": ArbeitnowScraper,
     "linkedin_indeed": JobSpyScraper,
+    "jobware": JobwareScraper,
     "stepstone": StepStoneScraper,
     "yer": YerScraper,
     "hays": HaysScraper,
@@ -37,6 +38,7 @@ SCRAPER_MAP = {
 SOURCE_LABELS = {
     "arbeitnow": "Arbeitnow",
     "linkedin_indeed": "LinkedIn + Indeed",
+    "jobware": "Jobware",
     "stepstone": "StepStone",
     "yer": "yer.de",
     "hays": "Hays DACH",

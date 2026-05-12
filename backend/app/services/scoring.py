@@ -1,11 +1,13 @@
 """CV-to-JD ATS scoring using Anthropic API."""
 import json
 import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
 
 from ..config import settings
 from ..database import db
-from ..constants import CV_CHAR_LIMIT, JD_CHAR_LIMIT
+from ..constants import CV_CHAR_LIMIT, JD_CHAR_LIMIT, BATCH_SCORE_WORKERS
 from datetime import datetime
 
 try:
@@ -197,6 +199,27 @@ _batch_state = {
     "done": 0,
     "errors": 0,
 }
+_state_lock = threading.Lock()
+
+
+def _score_one(job_id: int) -> None:
+    for attempt in range(5):
+        try:
+            score_job(job_id)
+            with _state_lock:
+                _batch_state["done"] += 1
+            return
+        except Exception as e:
+            is_rate_limit = "429" in str(e) or "rate_limit" in str(e)
+            if is_rate_limit and attempt < 4:
+                wait = 60 * (attempt + 1)
+                print(f"[scoring] Rate limited on job {job_id}, retrying in {wait}s (attempt {attempt + 1}/5)")
+                time.sleep(wait)
+            else:
+                print(f"[scoring] Error scoring job {job_id}: {e}")
+                with _state_lock:
+                    _batch_state["errors"] += 1
+                return
 
 
 def get_batch_status() -> dict:
@@ -209,13 +232,9 @@ def _batch_score_worker(job_ids: list[int]):
     _batch_state["done"] = 0
     _batch_state["errors"] = 0
     try:
-        for job_id in job_ids:
-            try:
-                score_job(job_id)
-                _batch_state["done"] += 1
-            except Exception as e:
-                _batch_state["errors"] += 1
-                print(f"[scoring] Error scoring job {job_id}: {e}")
+        with ThreadPoolExecutor(max_workers=BATCH_SCORE_WORKERS) as pool:
+            for _ in as_completed([pool.submit(_score_one, jid) for jid in job_ids]):
+                pass  # progress tracked inside _score_one under _state_lock
     finally:
         _batch_state["running"] = False
 

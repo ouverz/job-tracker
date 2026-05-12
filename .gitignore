@@ -36,3 +36,7 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# One-off utility / debug scripts (kept locally, not published)
+backfill_*.py
+backend/debug_arbeitnow.py

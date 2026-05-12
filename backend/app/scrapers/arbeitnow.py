@@ -5,12 +5,6 @@ from datetime import datetime
 import re
 
 
-DACH_PATTERNS = re.compile(
-    r"\b(germany|deutschland|berlin|munich|münchen|hamburg|frankfurt|köln|cologne|"
-    r"düsseldorf|Stuttgart|remote|austria|österreich|wien|vienna|switzerland|schweiz|zürich|zurich|dach)\b",
-    re.IGNORECASE,
-)
-
 # Keywords matched against job title (substring match, case-insensitive)
 ROLE_KEYWORDS = [
     # AI / ML
@@ -39,12 +33,10 @@ ROLE_KEYWORDS = [
 ]
 
 
-def _is_relevant(title: str, location: str) -> bool:
-    combined = f"{title} {location}".lower()
-    if not DACH_PATTERNS.search(combined):
-        return False
-    title_lower = title.lower()
-    return any(kw in title_lower for kw in ROLE_KEYWORDS)
+def _is_relevant(title: str) -> bool:
+    # Arbeitnow is a DACH-focused board — no location check needed.
+    # Only filter on role keywords matched against the title.
+    return any(kw in title.lower() for kw in ROLE_KEYWORDS)
 
 
 def _parse_employment_type(job: dict) -> str:
@@ -106,7 +98,7 @@ class ArbeitnowScraper(BaseScraper):
 
                     page_all_old = False
 
-                    if not _is_relevant(title, location):
+                    if not _is_relevant(title):
                         continue
 
                     seen_urls.add(url)

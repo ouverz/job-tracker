@@ -1,4 +1,5 @@
 """Description backfill for jobs missing descriptions."""
+import json
 import re
 import time
 import random
@@ -58,9 +59,61 @@ def _fetch_linkedin(client: httpx.Client, url: str) -> Optional[str]:
         return None
 
 
+def _fetch_indeed(client: httpx.Client, url: str) -> Optional[str]:
+    """Fetch Indeed job description from the public viewjob page.
+
+    Tries three extraction strategies in order:
+    1. JSON-LD <script> block (most reliable when present)
+    2. <div id="jobDescriptionText"> — the standard container
+    3. Fallback CSS class patterns used by Indeed's React render
+    """
+    try:
+        time.sleep(random.uniform(ENRICH_SLEEP_MIN_SEC, ENRICH_SLEEP_MAX_SEC))
+        # Indeed often redirects tracking URLs; follow them
+        resp = client.get(url, headers=HEADERS, follow_redirects=True, timeout=20)
+        if resp.status_code != 200:
+            return None
+        soup = BeautifulSoup(resp.text, "lxml")
+
+        # 1. JSON-LD — Indeed embeds full description here when server-side rendered
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                data = json.loads(script.string or "")
+                # May be a list or a single object
+                if isinstance(data, list):
+                    data = data[0]
+                desc = data.get("description", "")
+                if desc and len(desc) > 100:
+                    # Strip any HTML tags that leak through
+                    clean = BeautifulSoup(desc, "lxml").get_text(separator="\n", strip=True)
+                    return clean if len(clean) > 100 else None
+            except Exception:
+                continue
+
+        # 2. Standard Indeed description container
+        el = soup.find("div", {"id": "jobDescriptionText"})
+        if el:
+            text = el.get_text(separator="\n", strip=True)
+            return text if len(text) > 100 else None
+
+        # 3. Fallback — class-name patterns Indeed uses in its React bundles
+        el = soup.find(
+            "div",
+            class_=re.compile(r"jobsearch-jobDescriptionText|jobDescription", re.I),
+        )
+        if el:
+            text = el.get_text(separator="\n", strip=True)
+            return text if len(text) > 100 else None
+
+        return None
+    except Exception:
+        return None
+
+
 _FETCHERS = {
     "stepstone": _fetch_stepstone,
     "linkedin": _fetch_linkedin,
+    "indeed": _fetch_indeed,
 }
 
 _state: dict = {"running": False, "done": 0, "total": 0, "errors": 0, "source_counts": {}}
@@ -94,23 +147,41 @@ def _worker(rows: list) -> None:
     _state["running"] = False
 
 
-def start_backfill(sources: Optional[list[str]] = None, limit: int = 300) -> int:
-    """Start background description backfill. Returns number of jobs queued, 0 if already running."""
+def start_backfill(
+    sources: Optional[list[str]] = None,
+    limit: int = 300,
+    status: Optional[str] = None,
+) -> int:
+    """Start background description backfill. Returns number of jobs queued, 0 if already running.
+
+    Args:
+        sources: list of sources to fetch (default: stepstone, linkedin, indeed)
+        limit:   max jobs to queue
+        status:  if set, restrict to jobs with this status (e.g. "new")
+    """
     if _state["running"]:
         return 0
 
-    source_list = sources or ["stepstone", "linkedin"]
+    source_list = sources or ["stepstone", "linkedin", "indeed"]
     placeholders = ",".join("?" * len(source_list))
+
+    conditions = [
+        "(description IS NULL OR description = '')",
+        f"source IN ({placeholders})",
+        "status != 'archived'",
+    ]
+    params: list = list(source_list)
+
+    if status:
+        conditions.append("status = ?")
+        params.append(status)
+
+    where = " AND ".join(conditions)
 
     with db() as conn:
         rows = conn.execute(
-            f"SELECT id, url, source FROM jobs "
-            f"WHERE (description IS NULL OR description = '') "
-            f"AND source IN ({placeholders}) "
-            f"AND status != 'archived' "
-            f"ORDER BY source, id "  # stepstone first (more reliable)
-            f"LIMIT ?",
-            source_list + [limit],
+            f"SELECT id, url, source FROM jobs WHERE {where} ORDER BY source, id LIMIT ?",
+            params + [limit],
         ).fetchall()
 
     if not rows:

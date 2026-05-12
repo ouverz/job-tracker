@@ -10,6 +10,7 @@ Per-source scraper classes and the pipeline runner that orchestrates them. Each 
 |------|--------|-------|
 | `arbeitnow.py` | Arbeitnow | Public JSON API |
 | `jobspy_scraper.py` | LinkedIn + Indeed | Uses the `jobspy` library; two sources in one scraper |
+| `jobware.py` | Jobware | Internal JSON API (`/api/d48b2/xnfwe`); description included in listing response |
 | `stepstone.py` | StepStone | HTML scraping with BeautifulSoup |
 | `hays.py` | Hays DACH | HTML scraping |
 | `yer.py` | yer.de | HTML scraping |
@@ -45,11 +46,10 @@ Shared helper utilities (HTML cleaning, date parsing, salary normalisation).
 
 ## Dead scrapers (removed 2026-03)
 
-The following files were removed because the sources are either JS-rendered or no longer accessible:
+The following sources are either JS-rendered or no longer accessible:
 
 | Scraper | Reason |
 |---------|--------|
-| `jobware.py` | Requires JavaScript — returns "Bitte aktivieren Sie Javascript" |
 | `thryve.py` | Domain changed to thryve.health; no accessible DE data jobs |
 | `deeprec.py` | JS SPA, no public API |
 | `xcede.py` | JS SPA, no public API |

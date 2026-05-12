@@ -23,16 +23,17 @@ def title_filter_apply(status: str = Query("new")):
 
 @router.post("/backfill-descriptions")
 def backfill_descriptions(
-    sources: Optional[str] = Query(None, description="Comma-separated sources: stepstone,linkedin"),
+    sources: Optional[str] = Query(None, description="Comma-separated sources: stepstone,linkedin,indeed"),
     limit: int = Query(300, ge=1, le=500),
+    status: Optional[str] = Query(None, description="Restrict to jobs with this status, e.g. 'new'"),
 ):
     """Start background task to fetch missing job descriptions."""
     source_list = [s.strip() for s in sources.split(",")] if sources else None
-    queued = start_backfill(sources=source_list, limit=limit)
+    queued = start_backfill(sources=source_list, limit=limit, status=status)
     if queued == 0:
-        status = get_backfill_status()
-        if status["running"]:
-            return {"queued": 0, "message": "Backfill already running", "status": status}
+        current = get_backfill_status()
+        if current["running"]:
+            return {"queued": 0, "message": "Backfill already running", "status": current}
         return {"queued": 0, "message": "Nothing to backfill"}
     return {"queued": queued, "message": f"Backfill started for {queued} jobs"}
 

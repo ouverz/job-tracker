@@ -27,6 +27,12 @@ export const api = {
   deleteJob: (id) => request(`/jobs/${id}`, { method: "DELETE" }),
   getStats: () => request("/jobs/stats"),
   getKpi: () => request("/jobs/kpi"),
+  getGapAnalysis: (params = {}) => {
+    const q = new URLSearchParams(
+      Object.entries(params).filter(([, v]) => v !== undefined && v !== "" && v !== 0)
+    ).toString();
+    return request(`/analysis/gaps${q ? `?${q}` : ""}`);
+  },
 
   // Scraping
   triggerRun: (sources) =>
@@ -56,6 +62,14 @@ export const api = {
   updateContact: (id, data) => request(`/contacts/${id}`, { method: "PATCH", body: data }),
   deleteContact: (id) => request(`/contacts/${id}`, { method: "DELETE" }),
   getSearchLinks: (jobId) => request(`/jobs/${jobId}/search-links`),
+
+  // Activity log
+  getActivityLog: (week) => {
+    const q = week ? `?week=${week}` : "";
+    return request(`/activity-log${q}`);
+  },
+  updateActivityLog: (week, activity, data) =>
+    request(`/activity-log/${week}/${activity}`, { method: "PATCH", body: data }),
 
   // CV
   getCvStatus: () => request("/cv/status"),

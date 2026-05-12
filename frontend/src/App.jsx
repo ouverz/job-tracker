@@ -9,6 +9,8 @@ import JobDrawer from "./components/jobs/JobDrawer";
 import ScrapeModal from "./components/scraping/ScrapeModal";
 import Dashboard from "./components/Dashboard";
 import PipelineView from "./components/PipelineView";
+import GapAnalysis from "./components/GapAnalysis";
+import ActivityLog from "./components/ActivityLog";
 
 const PAGE_SIZE = 15;
 
@@ -146,7 +148,7 @@ export default function App() {
       <main className="flex-1 flex flex-col px-4 pb-8 max-w-screen-2xl mx-auto w-full">
         {/* Tab navigation */}
         <div className="mt-4 flex gap-1 border-b border-slate-800">
-          {["jobs", "pipeline", "dashboard"].map((t) => (
+          {["jobs", "pipeline", "dashboard", "analysis", "activity"].map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -188,6 +190,8 @@ export default function App() {
 
         {tab === "pipeline" && <PipelineView />}
         {tab === "dashboard" && <Dashboard />}
+        {tab === "analysis" && <GapAnalysis />}
+        {tab === "activity" && <ActivityLog />}
       </main>
 
       {selectedJobId && (

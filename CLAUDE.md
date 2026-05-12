@@ -2,6 +2,25 @@
 
 This file provides guidance to Claude Code when working with code in this repository.
 
+## Context Resolution Order
+
+When starting any task, resolve context in this order before writing any code or making any assumptions:
+
+1. **Read these MD files first** — they are the authoritative source of truth for this project:
+   - `CLAUDE.md` (this file) — working conventions and rules
+   - `PROJECT_PLAN.md` — build status, feature list, full file structure
+   - `backend/app/scrapers/README.md` — active and dead scrapers
+   - `backend/app/api/README.md` — all API routes and their behaviour
+   - `backend/app/services/README.md` — business logic layer
+
+2. **Use conversation context** — any files, outputs, or explanations the user has already provided in the current session.
+
+3. **Search or ask** — if the above two sources don't provide enough context:
+   - Use `Grep` / `Glob` / `Read` to look up the relevant file or symbol directly.
+   - If still unclear, ask the user a single focused question rather than guessing or making broad assumptions.
+
+Never assume a scraper, route, or feature exists (or doesn't) without checking the MD files or the code first.
+
 ## Project Overview
 
 **Job Tracker** is a personal job-search dashboard: a FastAPI backend + React/Vite frontend. It scrapes Data Engineering job postings, scores them against a CV using Claude AI, and tracks application status through a Kanban/table UI.

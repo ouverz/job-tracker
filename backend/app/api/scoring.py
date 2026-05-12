@@ -28,7 +28,7 @@ def batch_score(
     """Score all unscored jobs (or a subset). Use status to filter by job status, min_score/max_score to re-score a score range."""
     try:
         if status is not None or min_score is not None or max_score is not None:
-            conditions = ["description IS NOT NULL", "status != 'archived'"]
+            conditions = ["description IS NOT NULL", "status != 'archived'", "cv_score IS NULL"]
             params = []
             if status is not None:
                 conditions.append("status = ?")

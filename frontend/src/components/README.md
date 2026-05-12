@@ -12,6 +12,8 @@ React component tree. Job-specific components live in `jobs/`; scraping UI in `s
 | `FilterBar.jsx` | Horizontal filter strip: status tabs, source/type dropdowns, search input, score range slider |
 | `Dashboard.jsx` | KPI dashboard view — applied/rejected charts, summary stat cards |
 | `PipelineView.jsx` | Scraping pipeline status page — run history list, per-source progress |
+| `GapAnalysis.jsx` | Skills gap analysis — two-column frequency bar chart of CV strengths vs JD gaps across scored jobs; filterable by min score and status |
+| `ActivityLog.jsx` | Weekly activity log — target vs actual table with week navigation. Auto-tracked rows (applications sent, network reconnects) pull live counts from the DB; manual rows (outreach, LinkedIn posts, GitHub commits, interviews) use persisted +/- counters. Targets are click-to-edit inline. |
 
 ---
 

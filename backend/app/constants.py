@@ -8,6 +8,7 @@ JD_CHAR_LIMIT = 5000
 
 # Batch scoring background thread
 BATCH_POLL_SLEEP_SEC = 1.0
+BATCH_SCORE_WORKERS = 1  # concurrent Anthropic API calls during batch scoring
 
 # SSE streaming (scraping progress feed)
 SSE_POLL_INTERVAL_SEC = 1.0
