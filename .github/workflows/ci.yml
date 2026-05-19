@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          pip install -q --upgrade pip
+          pip install -q -r requirements-dev.txt
+
+      - name: Lint (black)
+        working-directory: backend
+        run: |
+          pip install -q black
+          black --check app/ tests/
+
+      - name: Run tests
+        working-directory: backend
+        run: pytest tests/ -v
+        env:
+          ANTHROPIC_API_KEY: ""
+          CANDIDATE_LOCATION: "Test City, Country"
+          CANDIDATE_MAX_COMMUTE_MIN: "45"
+          CANDIDATE_LANGUAGE_REQUIREMENT: "Language B1"

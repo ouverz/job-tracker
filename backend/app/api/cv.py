@@ -9,6 +9,7 @@ from ..config import settings
 router = APIRouter(prefix="/api/cv", tags=["cv"])
 
 ALLOWED_EXTENSIONS = {".pdf", ".docx"}
+MAX_CV_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
 def _extract_pdf(data: bytes) -> str:
@@ -65,6 +66,8 @@ async def upload_cv(file: UploadFile = File(...)):
     data = await file.read()
     if not data:
         raise HTTPException(400, "Empty file")
+    if len(data) > MAX_CV_BYTES:
+        raise HTTPException(413, "File too large — maximum size is 10 MB")
 
     if suffix == ".pdf":
         text = _extract_pdf(data)

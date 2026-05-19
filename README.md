@@ -40,7 +40,13 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 Upload your CV via the UI (Header → "Upload CV" — accepts PDF or DOCX). Alternatively, paste it as plain text into `cv.txt` at the project root. The rest of the app works without a CV.
 
-**Candidate constraints** for scoring (target location, commute radius, language requirements) are hardcoded in `backend/app/services/scoring.py` — edit the `SYSTEM_PROMPT` to match your profile.
+**Candidate profile** for ATS scoring — set these in `.env` (copy `.env.example` to `.env` first):
+
+```
+CANDIDATE_LOCATION=Your City, Country
+CANDIDATE_MAX_COMMUTE_MIN=45
+CANDIDATE_LANGUAGE_REQUIREMENT=German B1
+```
 
 **Search config** — edit `backend/app/config.py` to change roles, location, or per-source limits:
 
@@ -139,6 +145,19 @@ frontend/  React 18 · Vite · Tailwind CSS · TanStack Query
 
 Interactive docs: **http://localhost:8000/docs**
 
+## Configuration reference
+
+| Variable | Default | Description |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | *(none)* | Required for ATS scoring |
+| `CV_PATH` | `../cv.txt` | Path to your CV plain-text file |
+| `DB_PATH` | `./data/jobs.db` | SQLite database path |
+| `CANDIDATE_LOCATION` | `your city, Country` | Used in the ATS scoring prompt |
+| `CANDIDATE_MAX_COMMUTE_MIN` | `45` | Max commute in minutes (for location scoring) |
+| `CANDIDATE_LANGUAGE_REQUIREMENT` | `Language B1` | Language level listed in your CV |
+
+Search roles, location, and per-source job limits can be changed in `backend/app/config.py`.
+
 ## Scraping notes
 
 - **Arbeitnow**: free public API, best German coverage, no rate limits
@@ -146,3 +165,40 @@ Interactive docs: **http://localhost:8000/docs**
 - **StepStone / Jobware**: HTML scraping with polite delays; may return fewer results if layouts change
 - **Hays / yer.de / Orange Quarter**: specialist/agency sources; HTML scraping
 - All sources deduplicate on URL, content hash, and fuzzy company name — re-running won't create duplicates
+
+## Privacy
+
+All data is stored locally in `backend/data/jobs.db`. Nothing is sent to external services except:
+- Job descriptions and your CV text are sent to **Anthropic's API** when you use ATS scoring. See [Anthropic's privacy policy](https://www.anthropic.com/privacy).
+
+No telemetry, no analytics, no remote logging.
+
+## Limitations
+
+- **Single-user, local only** — SQLite is not suitable for concurrent users or large deployments.
+- **Scrapers can break** — HTML-based scrapers (StepStone, Hays, yer.de, Orange Quarter) depend on site structure that can change without notice. If a scraper stops returning results, open an issue or submit a fix.
+- **Scoring is personal** — the ATS scorer is only as good as the candidate profile you configure. Set your `CANDIDATE_*` env vars accurately.
+- **No authentication** — the API is open on localhost by default. Do not expose port 8000 to the internet.
+
+## Troubleshooting
+
+**Port already in use**
+```bash
+lsof -i :8000   # find the process
+kill <PID>
+```
+
+**Python version error**
+The app requires Python 3.11+. Check with `python3 --version`. Install from [python.org](https://python.org) or use `pyenv`.
+
+**"CV not found" when scoring**
+Upload your CV via the UI (Header → Upload CV), or place a plain-text file at the project root named `cv.txt`.
+
+**Scraper returns 0 jobs**
+HTML scrapers may have broken selectors. Run `./start.sh --dev` and check the terminal for error output from the scraper. Open an issue with the error.
+
+**Reset the database**
+```bash
+rm backend/data/jobs.db
+./start.sh   # init_db() recreates the schema automatically
+```

@@ -43,13 +43,13 @@ SCORE_TOOL = {
             },
             "language_match_score": {
                 "type": "integer",
-                "description": "Language requirements fit 0-100. 0 if job requires German above B1 or English above C2.",
+                "description": "Language requirements fit 0-100. 0 if the job requires a language level the candidate cannot meet.",
                 "minimum": 0,
                 "maximum": 100,
             },
             "location_score": {
                 "type": "integer",
-                "description": "Location fit 0-100. Score heavily penalized if on-site/hybrid and office likely >45 min by train from Frankfurt am Main.",
+                "description": "Location fit 0-100. Score heavily penalized if on-site/hybrid and the office is beyond the candidate's acceptable commute distance.",
                 "minimum": 0,
                 "maximum": 100,
             },
@@ -76,17 +76,21 @@ SCORE_TOOL = {
     },
 }
 
-SYSTEM_PROMPT = """You are an expert ATS system for a candidate based near Frankfurt am Main, Germany.
+def _build_system_prompt() -> str:
+    """Build the scoring system prompt from candidate settings in .env."""
+    loc = settings.candidate_location
+    commute = settings.candidate_max_commute_min
+    lang = settings.candidate_language_requirement
+    return f"""You are an expert ATS system evaluating job-CV compatibility.
 
 Candidate profile:
-- Location: Frankfurt am Main area — max acceptable commute is 45 minutes by train.
-  Penalise heavily if the role is on-site or hybrid AND the office city/location is likely
-  more than 45 min by train from Frankfurt (e.g. Munich, Hamburg, Berlin, Stuttgart, Cologne).
-  Frankfurt, Wiesbaden, Darmstadt, Offenbach, Hanau, Mainz are within range.
-- Language: English C2 (native/mastery), German B1 (intermediate).
-  If the job *requires* German at B2 or above — treat this as a hard blocker: cap overall_score
-  at 45 and set language_match_score <= 20.
-  If the job *prefers* (not requires) German above B1 — deduct 10-15 points from language_match_score.
+- Location: {loc} — max acceptable commute is {commute} minutes by train.
+  Penalise heavily if the role is on-site or hybrid AND the office city is likely
+  more than {commute} minutes by train from {loc}.
+- Language: English C2 (native/mastery), {lang}.
+  If the job *requires* a language level the candidate cannot meet — treat this as a hard
+  blocker: cap overall_score at 45 and set language_match_score <= 20.
+  If the job *prefers* (not requires) a higher level — deduct 10-15 points from language_match_score.
 - Tools: Any tool listed as *required* in the JD that does not appear in the CV is a significant
   gap. Do not ignore it or treat it as minor. List it explicitly in gaps[].
 
@@ -139,7 +143,7 @@ def score_job(job_id: int) -> dict:
     response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=2048,
-        system=SYSTEM_PROMPT,
+        system=_build_system_prompt(),
         tools=[SCORE_TOOL],
         tool_choice={"type": "tool", "name": "submit_job_score"},
         messages=[

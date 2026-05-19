@@ -1,0 +1,37 @@
+Jane Smith
+jane.smith@example.com | +49 123 456 7890 | LinkedIn: linkedin.com/in/janesmith
+Location: Berlin, Germany
+
+SUMMARY
+Data Engineer with 5+ years of experience building and maintaining large-scale data pipelines.
+Strong background in Python, SQL, and cloud data platforms.
+
+SKILLS
+Languages:    Python, SQL, Bash
+Databases:    PostgreSQL, BigQuery, Snowflake, dbt
+Cloud:        AWS (Glue, Redshift, S3, Lambda), GCP (BigQuery, Dataflow)
+Orchestration: Apache Airflow, Prefect
+Other:        Docker, Kubernetes, Git, dbt, Spark
+
+EXPERIENCE
+
+Senior Data Engineer | Acme Analytics GmbH | Berlin, Germany | Jan 2022 – Present
+- Designed and maintained ELT pipelines processing 10M+ events/day using Airflow + dbt
+- Migrated legacy ETL from custom scripts to dbt, reducing pipeline failures by 40%
+- Built real-time streaming pipeline with Kafka + Flink for customer behaviour analytics
+- Collaborated with data scientists to deploy ML feature pipelines in production
+
+Data Engineer | Data Solutions AG | Munich, Germany | Mar 2019 – Dec 2021
+- Built and maintained data warehouse on Snowflake
+- Automated reporting infrastructure, saving 10+ hours/week of manual work
+- Designed dimensional data models for finance and marketing teams
+
+EDUCATION
+
+M.Sc. Computer Science | Technical University of Berlin | 2019
+B.Sc. Information Systems | University of Mannheim | 2017
+
+LANGUAGES
+
+English: C2 (native/mastery)
+German:  B2 (professional working proficiency)

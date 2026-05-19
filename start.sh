@@ -13,7 +13,13 @@ echo "🚀 Starting Job Tracker..."
 # ── Backend ────────────────────────────────────────────────────────────────────
 cd "$DIR/backend"
 
-PYTHON=$(which python3.11 2>/dev/null || which python3.12 2>/dev/null || which python3 2>/dev/null)
+PYTHON=$(which python3.11 2>/dev/null || which python3.12 2>/dev/null || which python3 2>/dev/null || which python3.13 2>/dev/null)
+if [ -z "$PYTHON" ]; then
+  echo "❌ Python 3.11+ not found. Install it from https://python.org" && exit 1
+fi
+if ! $PYTHON -c "import sys; assert sys.version_info >= (3,11), 'need 3.11+'" 2>/dev/null; then
+  echo "❌ Python 3.11+ required (found $($PYTHON --version 2>&1))" && exit 1
+fi
 echo "Using Python: $($PYTHON --version)"
 
 if [ ! -d ".venv" ]; then
@@ -61,7 +67,11 @@ else
 
   trap "kill $BACKEND_PID 2>/dev/null; exit" INT TERM
 
-  LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "<your-local-ip>")
+  # Cross-platform local IP detection (macOS: ipconfig, Linux: hostname -I)
+  LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null \
+    || ipconfig getifaddr en1 2>/dev/null \
+    || hostname -I 2>/dev/null | awk '{print $1}' \
+    || echo "127.0.0.1")
 
   echo ""
   echo "✅ Job Tracker running (production mode)"
