@@ -2,6 +2,12 @@
 
 Local job aggregator and CRM for AI/Data/Analytics Engineering roles — primarily DACH.
 
+## Background
+
+This project was built during 2026 while I was job hunting. I kept visiting multiple job boards and aggregators every day and realised it was inefficient — I wanted one interface where all recently posted roles are pulled in automatically, giving me a clear vantage point over the market. From there it made sense to wrap a CRM-style layer around it to track application statuses and KPIs rather than managing a spreadsheet.
+
+I also integrated an ATS scoring framework that scores each job description against my own CV, returning a 0–100 similarity score to help prioritise applications. Role preferences (titles, location, on-site/hybrid/remote) are configurable. Each job also has a network section that surfaces hiring managers, team members, and recruiters connected to that role — facilitating outreach, which seems to be a strong approach in the current market.
+
 ## What it does
 
 - **Multi-source scraping**: Arbeitnow, LinkedIn, Indeed, StepStone, Jobware, Hays, yer.de, Orange Quarter — concurrent, deduplicated on every run
