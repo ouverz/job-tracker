@@ -1,4 +1,5 @@
 """Unit tests for the 3-layer deduplication logic in scrapers/runner.py."""
+
 from app.scrapers.runner import (
     _normalize_title,
     _normalize_company,

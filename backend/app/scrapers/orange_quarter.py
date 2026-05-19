@@ -1,4 +1,5 @@
 """orange-quarter.com scraper — data & analytics niche recruiter."""
+
 import re
 import time
 import random
@@ -40,7 +41,9 @@ class OrangeQuarterScraper(BaseScraper):
         results: list[JobPosting] = []
         seen_urls: set[str] = set()
 
-        with httpx.Client(timeout=20, headers=HEADERS, follow_redirects=True, max_redirects=5) as client:
+        with httpx.Client(
+            timeout=20, headers=HEADERS, follow_redirects=True, max_redirects=5
+        ) as client:
             try_urls = [
                 f"{BASE_URL}/jobs/",
                 f"{BASE_URL}/stellenangebote/",
@@ -60,11 +63,17 @@ class OrangeQuarterScraper(BaseScraper):
 
                 soup = BeautifulSoup(resp.text, "lxml")
 
-                cards = soup.find_all(class_=re.compile(r"job-?card|job-?item|job-?listing|vacancy|position", re.I))
+                cards = soup.find_all(
+                    class_=re.compile(
+                        r"job-?card|job-?item|job-?listing|vacancy|position", re.I
+                    )
+                )
                 if not cards:
                     cards = soup.find_all("article")
                 if not cards:
-                    cards = soup.find_all("li", class_=re.compile(r"job|result|position|vacancy", re.I))
+                    cards = soup.find_all(
+                        "li", class_=re.compile(r"job|result|position|vacancy", re.I)
+                    )
 
                 for card in cards:
                     try:
@@ -85,23 +94,39 @@ class OrangeQuarterScraper(BaseScraper):
                             continue
                         seen_urls.add(job_url)
 
-                        company_el = card.find(class_=re.compile(r"company|employer|arbeitgeber", re.I))
-                        company = company_el.get_text(strip=True) if company_el else "orange-quarter.com"
+                        company_el = card.find(
+                            class_=re.compile(r"company|employer|arbeitgeber", re.I)
+                        )
+                        company = (
+                            company_el.get_text(strip=True)
+                            if company_el
+                            else "orange-quarter.com"
+                        )
 
-                        location_el = card.find(class_=re.compile(r"location|city|ort|place", re.I))
-                        location = location_el.get_text(strip=True) if location_el else "Germany"
+                        location_el = card.find(
+                            class_=re.compile(r"location|city|ort|place", re.I)
+                        )
+                        location = (
+                            location_el.get_text(strip=True)
+                            if location_el
+                            else "Germany"
+                        )
 
                         snippet = card.get_text(" ", strip=True)
 
-                        results.append(JobPosting(
-                            source="orange_quarter",
-                            url=job_url,
-                            title=title,
-                            company=company,
-                            location=location,
-                            employment_type=_detect_employment_type(snippet),
-                            remote_type=_detect_remote(f"{title} {location} {snippet}"),
-                        ))
+                        results.append(
+                            JobPosting(
+                                source="orange_quarter",
+                                url=job_url,
+                                title=title,
+                                company=company,
+                                location=location,
+                                employment_type=_detect_employment_type(snippet),
+                                remote_type=_detect_remote(
+                                    f"{title} {location} {snippet}"
+                                ),
+                            )
+                        )
                     except Exception:
                         continue
 

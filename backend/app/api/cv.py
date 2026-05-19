@@ -1,4 +1,5 @@
 """CV upload endpoint — accepts PDF or DOCX, extracts text, saves as cv.txt."""
+
 import io
 from pathlib import Path
 
@@ -42,7 +43,9 @@ def _extract_docx(data: bytes) -> str:
                 for cell in row.iter():
                     if not cell.tag.endswith("}tc"):
                         continue
-                    cell_text = "".join(t.text or "" for t in cell.iter() if t.tag.endswith("}t"))
+                    cell_text = "".join(
+                        t.text or "" for t in cell.iter() if t.tag.endswith("}t")
+                    )
                     if cell_text.strip():
                         cells.append(cell_text.strip())
                 if cells:

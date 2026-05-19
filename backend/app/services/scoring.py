@@ -1,4 +1,5 @@
 """CV-to-JD ATS scoring using Anthropic API."""
+
 import json
 import threading
 import time
@@ -12,6 +13,7 @@ from datetime import datetime
 
 try:
     import anthropic
+
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
@@ -69,12 +71,18 @@ SCORE_TOOL = {
             },
         },
         "required": [
-            "overall_score", "skill_match_score", "experience_match_score",
-            "language_match_score", "location_score",
-            "strengths", "gaps", "summary",
+            "overall_score",
+            "skill_match_score",
+            "experience_match_score",
+            "language_match_score",
+            "location_score",
+            "strengths",
+            "gaps",
+            "summary",
         ],
     },
 }
+
 
 def _build_system_prompt() -> str:
     """Build the scoring system prompt from candidate settings in .env."""
@@ -98,7 +106,9 @@ Scoring thresholds: 80+ strong match, 50-79 partial match, below 50 weak match.
 Be calibrated — most roles should not score 80+."""
 
 
-def _build_prompt(cv_text: str, job_title: str, job_company: Optional[str], jd_text: str) -> str:
+def _build_prompt(
+    cv_text: str, job_title: str, job_company: Optional[str], jd_text: str
+) -> str:
     # CV and JD are truncated to stay within a reasonable token budget.
     # CV_CHAR_LIMIT covers most full CVs; JD_CHAR_LIMIT captures the
     # essential requirements without including boilerplate footer text.
@@ -149,7 +159,9 @@ def score_job(job_id: int) -> dict:
         messages=[
             {
                 "role": "user",
-                "content": _build_prompt(cv_text, row["title"], row["company"], jd_text),
+                "content": _build_prompt(
+                    cv_text, row["title"], row["company"], jd_text
+                ),
             }
         ],
     )
@@ -164,14 +176,16 @@ def score_job(job_id: int) -> dict:
     if not result:
         raise RuntimeError("No score returned from Claude")
 
-    breakdown = json.dumps({
-        "skill_match_score": result.get("skill_match_score"),
-        "experience_match_score": result.get("experience_match_score"),
-        "language_match_score": result.get("language_match_score"),
-        "location_score": result.get("location_score"),
-        "strengths": result.get("strengths", []),
-        "gaps": result.get("gaps", []),
-    })
+    breakdown = json.dumps(
+        {
+            "skill_match_score": result.get("skill_match_score"),
+            "experience_match_score": result.get("experience_match_score"),
+            "language_match_score": result.get("language_match_score"),
+            "location_score": result.get("location_score"),
+            "strengths": result.get("strengths", []),
+            "gaps": result.get("gaps", []),
+        }
+    )
 
     now = datetime.utcnow().isoformat()
     with db() as conn:
@@ -217,7 +231,9 @@ def _score_one(job_id: int) -> None:
             is_rate_limit = "429" in str(e) or "rate_limit" in str(e)
             if is_rate_limit and attempt < 4:
                 wait = 60 * (attempt + 1)
-                print(f"[scoring] Rate limited on job {job_id}, retrying in {wait}s (attempt {attempt + 1}/5)")
+                print(
+                    f"[scoring] Rate limited on job {job_id}, retrying in {wait}s (attempt {attempt + 1}/5)"
+                )
                 time.sleep(wait)
             else:
                 print(f"[scoring] Error scoring job {job_id}: {e}")

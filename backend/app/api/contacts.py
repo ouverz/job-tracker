@@ -11,7 +11,9 @@ router = APIRouter(prefix="/api", tags=["contacts"])
 @router.get("/jobs/{job_id}/search-links")
 def search_links(job_id: int):
     with db() as conn:
-        job = conn.execute("SELECT company, title FROM jobs WHERE id = ?", (job_id,)).fetchone()
+        job = conn.execute(
+            "SELECT company, title FROM jobs WHERE id = ?", (job_id,)
+        ).fetchone()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     company = job["company"] or ""
@@ -39,9 +41,19 @@ def add_contact(job_id: int, payload: ContactCreate):
         cur = conn.execute(
             """INSERT INTO contacts (job_id, name, linkedin_url, role, notes, reached_out, created_at, updated_at)
                VALUES (?, ?, ?, ?, ?, 0, ?, ?)""",
-            (job_id, payload.name, payload.linkedin_url, payload.role, payload.notes, now, now),
+            (
+                job_id,
+                payload.name,
+                payload.linkedin_url,
+                payload.role,
+                payload.notes,
+                now,
+                now,
+            ),
         )
-        row = conn.execute("SELECT * FROM contacts WHERE id = ?", (cur.lastrowid,)).fetchone()
+        row = conn.execute(
+            "SELECT * FROM contacts WHERE id = ?", (cur.lastrowid,)
+        ).fetchone()
     return dict(row)
 
 
@@ -58,7 +70,9 @@ def update_contact(contact_id: int, payload: ContactUpdate):
     values = list(updates.values()) + [contact_id]
     with db() as conn:
         conn.execute(f"UPDATE contacts SET {set_clause} WHERE id = ?", values)
-        row = conn.execute("SELECT * FROM contacts WHERE id = ?", (contact_id,)).fetchone()
+        row = conn.execute(
+            "SELECT * FROM contacts WHERE id = ?", (contact_id,)
+        ).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Contact not found")
     return dict(row)

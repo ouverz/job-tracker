@@ -1,4 +1,5 @@
 """Enrichment API: title filtering and description backfill."""
+
 from fastapi import APIRouter, Query
 from typing import Optional
 
@@ -23,9 +24,13 @@ def title_filter_apply(status: str = Query("new")):
 
 @router.post("/backfill-descriptions")
 def backfill_descriptions(
-    sources: Optional[str] = Query(None, description="Comma-separated sources: stepstone,linkedin,indeed"),
+    sources: Optional[str] = Query(
+        None, description="Comma-separated sources: stepstone,linkedin,indeed"
+    ),
     limit: int = Query(300, ge=1, le=500),
-    status: Optional[str] = Query(None, description="Restrict to jobs with this status, e.g. 'new'"),
+    status: Optional[str] = Query(
+        None, description="Restrict to jobs with this status, e.g. 'new'"
+    ),
 ):
     """Start background task to fetch missing job descriptions."""
     source_list = [s.strip() for s in sources.split(",")] if sources else None
@@ -33,7 +38,11 @@ def backfill_descriptions(
     if queued == 0:
         current = get_backfill_status()
         if current["running"]:
-            return {"queued": 0, "message": "Backfill already running", "status": current}
+            return {
+                "queued": 0,
+                "message": "Backfill already running",
+                "status": current,
+            }
         return {"queued": 0, "message": "Nothing to backfill"}
     return {"queued": queued, "message": f"Backfill started for {queued} jobs"}
 

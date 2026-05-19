@@ -4,30 +4,42 @@ from .base import BaseScraper, JobPosting, is_too_old
 from datetime import datetime
 import re
 
-
 # Keywords matched against job title (substring match, case-insensitive)
 ROLE_KEYWORDS = [
     # AI / ML
-    "ai engineer", "ai architect", "ai developer",
+    "ai engineer",
+    "ai architect",
+    "ai developer",
     "artificial intelligence",
-    "machine learning", "ml engineer",
-    "mlops", "ml ops",
-    "llm", "nlp",
-    "generative ai", "gen ai",
+    "machine learning",
+    "ml engineer",
+    "mlops",
+    "ml ops",
+    "llm",
+    "nlp",
+    "generative ai",
+    "gen ai",
     "deep learning",
-    "ki-ingenieur", "ki engineer",           # German: KI = AI
+    "ki-ingenieur",
+    "ki engineer",  # German: KI = AI
     # Data Engineering
-    "data engineer", "data architect",
-    "data platform", "data infrastructure",
-    "data pipeline", "etl engineer",
+    "data engineer",
+    "data architect",
+    "data platform",
+    "data infrastructure",
+    "data pipeline",
+    "etl engineer",
     "databricks engineer",
     "big data",
-    "dataops", "data ops",
+    "dataops",
+    "data ops",
     # Analytics
-    "analytics engineer", "analytics architect",
+    "analytics engineer",
+    "analytics architect",
     "dbt",
     "data analyst",
-    "bi engineer", "bi developer",
+    "bi engineer",
+    "bi developer",
     # Data Science
     "data scientist",
 ]
@@ -104,18 +116,20 @@ class ArbeitnowScraper(BaseScraper):
                     seen_urls.add(url)
                     is_remote = job.get("remote", False)
 
-                    results.append(JobPosting(
-                        source="arbeitnow",
-                        url=url,
-                        title=title,
-                        company=job.get("company_name"),
-                        location=location,
-                        employment_type=_parse_employment_type(job),
-                        remote_type="remote" if is_remote else "onsite",
-                        description=job.get("description", ""),
-                        posted_at=posted_at,
-                        external_id=job.get("slug"),
-                    ))
+                    results.append(
+                        JobPosting(
+                            source="arbeitnow",
+                            url=url,
+                            title=title,
+                            company=job.get("company_name"),
+                            location=location,
+                            employment_type=_parse_employment_type(job),
+                            remote_type="remote" if is_remote else "onsite",
+                            description=job.get("description", ""),
+                            posted_at=posted_at,
+                            external_id=job.get("slug"),
+                        )
+                    )
 
                 # Stop if every job on this page was older than 14 days
                 if page_all_old:

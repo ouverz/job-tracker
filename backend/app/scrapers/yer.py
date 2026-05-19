@@ -4,6 +4,7 @@ URL changed (2026-03): /jobs/ → /de/jobangebote/?search={role}
 Card class changed to: job-items__item
 Detail page has location in: div.jd-header__feature-location
 """
+
 import re
 import time
 import random
@@ -48,10 +49,14 @@ def _get_detail(client: httpx.Client, url: str) -> tuple:
             return None, None
         soup = BeautifulSoup(resp.text, "lxml")
 
-        loc_el = soup.find("div", class_=re.compile(r"jd-header__feature-location", re.I))
+        loc_el = soup.find(
+            "div", class_=re.compile(r"jd-header__feature-location", re.I)
+        )
         location = loc_el.get_text(strip=True) if loc_el else None
 
-        desc_el = soup.find("div", class_=re.compile(r"job-detail__content-wrapper", re.I))
+        desc_el = soup.find(
+            "div", class_=re.compile(r"job-detail__content-wrapper", re.I)
+        )
         description = desc_el.get_text(separator="\n", strip=True) if desc_el else None
 
         return description, location
@@ -65,7 +70,9 @@ class YerScraper(BaseScraper):
         results: list[JobPosting] = []
         seen_urls: set[str] = set()
 
-        with httpx.Client(timeout=20, headers=HEADERS, follow_redirects=True, max_redirects=5) as client:
+        with httpx.Client(
+            timeout=20, headers=HEADERS, follow_redirects=True, max_redirects=5
+        ) as client:
             for role in self.roles:
                 try:
                     params = {"search": role}
@@ -84,11 +91,15 @@ class YerScraper(BaseScraper):
                 cards = soup.find_all("div", class_="job-items__item")
                 if not cards:
                     # Fallback: try broader class match
-                    cards = soup.find_all("div", class_=re.compile(r"job-items__item", re.I))
+                    cards = soup.find_all(
+                        "div", class_=re.compile(r"job-items__item", re.I)
+                    )
 
                 for card in cards:
                     try:
-                        link = card.find("a", href=re.compile(r"/de/jobangebote/[^?]+$"))
+                        link = card.find(
+                            "a", href=re.compile(r"/de/jobangebote/[^?]+$")
+                        )
                         if not link:
                             link = card.find("a")
                         if not link:
@@ -102,22 +113,29 @@ class YerScraper(BaseScraper):
                             continue
                         seen_urls.add(job_url)
 
-                        title_el = card.find("div", class_=re.compile(r"job-items__item-title", re.I)) or link
+                        title_el = (
+                            card.find(
+                                "div", class_=re.compile(r"job-items__item-title", re.I)
+                            )
+                            or link
+                        )
                         title = title_el.get_text(strip=True)
                         if not title:
                             continue
 
                         snippet = card.get_text(" ", strip=True)
 
-                        results.append(JobPosting(
-                            source="yer",
-                            url=job_url,
-                            title=title,
-                            company="yer.de",
-                            location="Germany",  # enriched below from detail page
-                            employment_type=_detect_employment_type(snippet),
-                            remote_type=_detect_remote(f"{title} {snippet}"),
-                        ))
+                        results.append(
+                            JobPosting(
+                                source="yer",
+                                url=job_url,
+                                title=title,
+                                company="yer.de",
+                                location="Germany",  # enriched below from detail page
+                                employment_type=_detect_employment_type(snippet),
+                                remote_type=_detect_remote(f"{title} {snippet}"),
+                            )
+                        )
                     except Exception:
                         continue
 

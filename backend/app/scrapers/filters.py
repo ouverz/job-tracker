@@ -1,18 +1,35 @@
 """Title and age filters applied to all scraped jobs before DB insertion."""
+
 from datetime import datetime, timedelta
 from typing import List
 
 from .base import JobPosting
 
 TITLE_BLACKLIST = [
-    "intern", "internship", "working student", "work student",
-    "werkstudent", "junior", "praktikum", "praktikant",
+    "intern",
+    "internship",
+    "working student",
+    "work student",
+    "werkstudent",
+    "junior",
+    "praktikum",
+    "praktikant",
 ]
 
 TITLE_ALLOWLIST = [
-    "data", "ai", "ml", "analytics", "machine learning",
-    "intelligence", "scientist", "mlops", "quantitative",
-    "bi", "nlp", "llm", "deep learning",
+    "data",
+    "ai",
+    "ml",
+    "analytics",
+    "machine learning",
+    "intelligence",
+    "scientist",
+    "mlops",
+    "quantitative",
+    "bi",
+    "nlp",
+    "llm",
+    "deep learning",
 ]
 
 MAX_AGE_DAYS = 14

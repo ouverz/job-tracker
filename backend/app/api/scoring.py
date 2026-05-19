@@ -21,14 +21,24 @@ def score_single_job(job_id: int):
 @router.post("/batch")
 def batch_score(
     job_ids: Optional[list[int]] = None,
-    status: Optional[str] = Query(None, description="Only score jobs with this status (e.g. 'new')"),
-    min_score: Optional[int] = Query(None, ge=0, le=100, description="Re-score jobs with cv_score >= this value"),
-    max_score: Optional[int] = Query(None, ge=0, le=100, description="Re-score jobs with cv_score <= this value"),
+    status: Optional[str] = Query(
+        None, description="Only score jobs with this status (e.g. 'new')"
+    ),
+    min_score: Optional[int] = Query(
+        None, ge=0, le=100, description="Re-score jobs with cv_score >= this value"
+    ),
+    max_score: Optional[int] = Query(
+        None, ge=0, le=100, description="Re-score jobs with cv_score <= this value"
+    ),
 ):
     """Score all unscored jobs (or a subset). Use status to filter by job status, min_score/max_score to re-score a score range."""
     try:
         if status is not None or min_score is not None or max_score is not None:
-            conditions = ["description IS NOT NULL", "status != 'archived'", "cv_score IS NULL"]
+            conditions = [
+                "description IS NOT NULL",
+                "status != 'archived'",
+                "cv_score IS NULL",
+            ]
             params = []
             if status is not None:
                 conditions.append("status = ?")

@@ -9,7 +9,16 @@ class Settings(BaseSettings):
     db_path: str = "./data/jobs.db"
     search_roles: list[str] = ["AI Engineer", "Data Engineer", "Analytics Engineer"]
     search_location: str = "Germany"
-    dach_locations: list[str] = ["Germany", "Austria", "Switzerland", "Deutschland", "Österreich", "Schweiz", "Remote", "DACH"]
+    dach_locations: list[str] = [
+        "Germany",
+        "Austria",
+        "Switzerland",
+        "Deutschland",
+        "Österreich",
+        "Schweiz",
+        "Remote",
+        "DACH",
+    ]
     max_jobs_per_source: int = 50
 
     # Candidate profile — used to personalise ATS scoring prompts.
@@ -18,7 +27,9 @@ class Settings(BaseSettings):
     candidate_max_commute_min: int = 45
     candidate_language_requirement: str = "Language B1"
 
-    model_config = {"env_file": str(Path(__file__).resolve().parent.parent.parent / ".env")}
+    model_config = {
+        "env_file": str(Path(__file__).resolve().parent.parent.parent / ".env")
+    }
 
     def get_cv_text(self) -> str:
         cv_path = Path(self.cv_path)

@@ -1,4 +1,5 @@
 """StepStone.de scraper using requests + BeautifulSoup."""
+
 import re
 import time
 import random
@@ -35,8 +36,9 @@ def _parse_date(article) -> Optional[datetime]:
             pass
 
     # Try date-labelled spans/divs
-    date_el = article.find(attrs={"data-at": re.compile(r"date|posted|time", re.I)}) or \
-              article.find(class_=re.compile(r"date|posted|pubdate|time", re.I))
+    date_el = article.find(
+        attrs={"data-at": re.compile(r"date|posted|time", re.I)}
+    ) or article.find(class_=re.compile(r"date|posted|pubdate|time", re.I))
     if date_el:
         text = date_el.get_text(strip=True).lower()
         now = datetime.now()
@@ -59,7 +61,9 @@ def _parse_date(article) -> Optional[datetime]:
 
 def _detect_employment_type(text: str) -> str:
     t = text.lower()
-    if any(w in t for w in ["freelance", "freiberuflich", "selbständig", "freie mitarbeit"]):
+    if any(
+        w in t for w in ["freelance", "freiberuflich", "selbständig", "freie mitarbeit"]
+    ):
         return "freelance"
     return "permanent"
 
@@ -81,8 +85,9 @@ def _get_description(client: httpx.Client, url: str) -> Optional[str]:
             return None
         soup = BeautifulSoup(resp.text, "lxml")
         # StepStone job description container
-        desc_el = soup.find("div", {"data-at": "job-ad-details"}) or \
-                  soup.find("div", class_=re.compile(r"job-ad-display|JobAd|jobDescription", re.I))
+        desc_el = soup.find("div", {"data-at": "job-ad-details"}) or soup.find(
+            "div", class_=re.compile(r"job-ad-display|JobAd|jobDescription", re.I)
+        )
         if desc_el:
             return desc_el.get_text(separator="\n", strip=True)
         return None
@@ -102,7 +107,9 @@ class StepStoneScraper(BaseScraper):
                     try:
                         # StepStone URL format
                         role_slug = quote_plus(role)
-                        url = f"{BASE_URL}/jobs/?q={role_slug}&l=Deutschland&page={page}"
+                        url = (
+                            f"{BASE_URL}/jobs/?q={role_slug}&l=Deutschland&page={page}"
+                        )
                         time.sleep(random.uniform(1.0, 2.5))
                         resp = client.get(url, timeout=15)
                         if resp.status_code in (403, 429):
@@ -120,7 +127,10 @@ class StepStoneScraper(BaseScraper):
                     articles = soup.find_all("article", {"data-at": "job-item"})
                     if not articles:
                         # Try alternative selectors
-                        articles = soup.find_all("article", class_=re.compile(r"job-element|ResultItem", re.I))
+                        articles = soup.find_all(
+                            "article",
+                            class_=re.compile(r"job-element|ResultItem", re.I),
+                        )
 
                     if not articles:
                         break
@@ -128,8 +138,11 @@ class StepStoneScraper(BaseScraper):
                     for article in articles:
                         try:
                             # Title
-                            title_el = article.find("a", {"data-at": "job-item-title"}) or \
-                                       article.find("h2") or article.find("a")
+                            title_el = (
+                                article.find("a", {"data-at": "job-item-title"})
+                                or article.find("h2")
+                                or article.find("a")
+                            )
                             if not title_el:
                                 continue
                             title = title_el.get_text(strip=True)
@@ -147,34 +160,52 @@ class StepStoneScraper(BaseScraper):
                             seen_urls.add(job_url)
 
                             # Company
-                            company_el = article.find(attrs={"data-at": "job-item-company-name"}) or \
-                                         article.find(class_=re.compile(r"company|employer", re.I))
-                            company = company_el.get_text(strip=True) if company_el else None
+                            company_el = article.find(
+                                attrs={"data-at": "job-item-company-name"}
+                            ) or article.find(
+                                class_=re.compile(r"company|employer", re.I)
+                            )
+                            company = (
+                                company_el.get_text(strip=True) if company_el else None
+                            )
 
                             # Location
-                            location_el = article.find(attrs={"data-at": "job-item-location"}) or \
-                                          article.find(class_=re.compile(r"location|city", re.I))
-                            location = location_el.get_text(strip=True) if location_el else "Germany"
+                            location_el = article.find(
+                                attrs={"data-at": "job-item-location"}
+                            ) or article.find(class_=re.compile(r"location|city", re.I))
+                            location = (
+                                location_el.get_text(strip=True)
+                                if location_el
+                                else "Germany"
+                            )
 
                             # Salary teaser
-                            salary_el = article.find(class_=re.compile(r"salary|gehalt", re.I))
-                            salary_raw = salary_el.get_text(strip=True) if salary_el else None
+                            salary_el = article.find(
+                                class_=re.compile(r"salary|gehalt", re.I)
+                            )
+                            salary_raw = (
+                                salary_el.get_text(strip=True) if salary_el else None
+                            )
 
                             # Snippet text for remote/type detection
                             snippet = article.get_text(" ", strip=True)
 
-                            results.append(JobPosting(
-                                source="stepstone",
-                                url=job_url,
-                                title=title,
-                                company=company,
-                                location=location,
-                                employment_type=_detect_employment_type(snippet),
-                                remote_type=_detect_remote(f"{title} {location} {snippet}"),
-                                salary_raw=salary_raw,
-                                posted_at=posted_at,
-                                description=None,  # fetched separately if needed
-                            ))
+                            results.append(
+                                JobPosting(
+                                    source="stepstone",
+                                    url=job_url,
+                                    title=title,
+                                    company=company,
+                                    location=location,
+                                    employment_type=_detect_employment_type(snippet),
+                                    remote_type=_detect_remote(
+                                        f"{title} {location} {snippet}"
+                                    ),
+                                    salary_raw=salary_raw,
+                                    posted_at=posted_at,
+                                    description=None,  # fetched separately if needed
+                                )
+                            )
                         except Exception:
                             continue
 

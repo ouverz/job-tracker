@@ -141,17 +141,28 @@ def list_jobs(
 def get_stats():
     with db() as conn:
         total = conn.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
-        by_status = {r[0]: r[1] for r in conn.execute(
-            "SELECT status, COUNT(*) FROM jobs GROUP BY status"
-        ).fetchall()}
-        by_source = {r[0]: r[1] for r in conn.execute(
-            "SELECT source, COUNT(*) FROM jobs GROUP BY source"
-        ).fetchall()}
+        by_status = {
+            r[0]: r[1]
+            for r in conn.execute(
+                "SELECT status, COUNT(*) FROM jobs GROUP BY status"
+            ).fetchall()
+        }
+        by_source = {
+            r[0]: r[1]
+            for r in conn.execute(
+                "SELECT source, COUNT(*) FROM jobs GROUP BY source"
+            ).fetchall()
+        }
         unscored = conn.execute(
             "SELECT COUNT(*) FROM jobs WHERE cv_score IS NULL AND description IS NOT NULL"
         ).fetchone()[0]
 
-    return {"total": total, "by_status": by_status, "by_source": by_source, "unscored": unscored}
+    return {
+        "total": total,
+        "by_status": by_status,
+        "by_source": by_source,
+        "unscored": unscored,
+    }
 
 
 @router.get("/kpi")
@@ -179,9 +190,12 @@ def get_kpi():
                 (cutoff,),
             ).fetchall()
         ]
-        by_status = {r[0]: r[1] for r in conn.execute(
-            "SELECT status, COUNT(*) FROM jobs GROUP BY status"
-        ).fetchall()}
+        by_status = {
+            r[0]: r[1]
+            for r in conn.execute(
+                "SELECT status, COUNT(*) FROM jobs GROUP BY status"
+            ).fetchall()
+        }
         applied_today = conn.execute(
             "SELECT COUNT(*) FROM jobs WHERE DATE(applied_at) = ?", (today,)
         ).fetchone()[0]
@@ -247,7 +261,11 @@ def batch_update_status(update: BatchStatusUpdate):
 
 @router.patch("/{job_id}", response_model=Job)
 def update_job(job_id: int, update: JobUpdate):
-    fields = {k: v for k, v in update.model_dump().items() if v is not None and k in ALLOWED_UPDATE_FIELDS}
+    fields = {
+        k: v
+        for k, v in update.model_dump().items()
+        if v is not None and k in ALLOWED_UPDATE_FIELDS
+    }
     if not fields:
         raise HTTPException(400, "No fields to update")
 
@@ -261,7 +279,9 @@ def update_job(job_id: int, update: JobUpdate):
         if fields["status"] == "applied" and "applied_at" not in fields:
             # Auto-set applied_at if not explicitly provided
             with db() as conn:
-                existing = conn.execute("SELECT applied_at FROM jobs WHERE id = ?", (job_id,)).fetchone()
+                existing = conn.execute(
+                    "SELECT applied_at FROM jobs WHERE id = ?", (job_id,)
+                ).fetchone()
             if existing and not existing["applied_at"]:
                 fields["applied_at"] = now
 

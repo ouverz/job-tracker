@@ -1,4 +1,5 @@
 """LinkedIn and Indeed scraper using python-jobspy library."""
+
 import re
 from datetime import datetime
 from typing import Optional
@@ -7,6 +8,7 @@ from .base import BaseScraper, JobPosting, is_too_old
 
 try:
     from jobspy import scrape_jobs
+
     JOBSPY_AVAILABLE = True
 except ImportError:
     JOBSPY_AVAILABLE = False
@@ -23,7 +25,9 @@ def _detect_remote(title: str, description: str, location: str) -> str:
 
 def _detect_employment_type(title: str, description: str) -> str:
     combined = f"{title} {description[:500]}".lower()
-    if any(w in combined for w in ["freelance", "freiberuflich", "contract", "selbständig"]):
+    if any(
+        w in combined for w in ["freelance", "freiberuflich", "contract", "selbständig"]
+    ):
         return "freelance"
     return "permanent"
 
@@ -46,7 +50,9 @@ class JobSpyScraper(BaseScraper):
 
     def scrape(self) -> list[JobPosting]:
         if not JOBSPY_AVAILABLE:
-            raise RuntimeError("python-jobspy not installed. Run: pip install python-jobspy")
+            raise RuntimeError(
+                "python-jobspy not installed. Run: pip install python-jobspy"
+            )
 
         results: list[JobPosting] = []
         seen_urls: set[str] = set()
@@ -84,19 +90,28 @@ class JobSpyScraper(BaseScraper):
                         description = str(row.get("description", "") or "")
                         location = str(row.get("location", "") or "")
 
-                        results.append(JobPosting(
-                            source=site,
-                            url=url,
-                            title=title,
-                            company=str(row.get("company", "") or "").strip() or None,
-                            location=location or None,
-                            employment_type=_detect_employment_type(title, description),
-                            remote_type=_detect_remote(title, description, location),
-                            salary_raw=str(row.get("min_amount", "") or "").strip() or None,
-                            description=description or None,
-                            posted_at=posted_at,
-                            external_id=str(row.get("id", "") or "").strip() or None,
-                        ))
+                        results.append(
+                            JobPosting(
+                                source=site,
+                                url=url,
+                                title=title,
+                                company=str(row.get("company", "") or "").strip()
+                                or None,
+                                location=location or None,
+                                employment_type=_detect_employment_type(
+                                    title, description
+                                ),
+                                remote_type=_detect_remote(
+                                    title, description, location
+                                ),
+                                salary_raw=str(row.get("min_amount", "") or "").strip()
+                                or None,
+                                description=description or None,
+                                posted_at=posted_at,
+                                external_id=str(row.get("id", "") or "").strip()
+                                or None,
+                            )
+                        )
                 except Exception as e:
                     # Don't fail all sources if one role/site combination fails
                     print(f"[jobspy] Error scraping {site}/{role}: {e}")

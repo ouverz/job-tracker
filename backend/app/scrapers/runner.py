@@ -1,4 +1,5 @@
 """Orchestrates all scrapers, deduplicates results, and persists to DB."""
+
 import hashlib
 import re
 import threading
@@ -10,8 +11,13 @@ _db_write_lock = threading.Lock()  # serialise concurrent upserts across scraper
 
 from ..database import db
 from ..scrapers import (
-    ArbeitnowScraper, JobSpyScraper, JobwareScraper, StepStoneScraper,
-    YerScraper, HaysScraper, OrangeQuarterScraper,
+    ArbeitnowScraper,
+    JobSpyScraper,
+    JobwareScraper,
+    StepStoneScraper,
+    YerScraper,
+    HaysScraper,
+    OrangeQuarterScraper,
 )
 from ..scrapers.base import JobPosting
 from ..scrapers.filters import apply_filters
@@ -49,7 +55,11 @@ SOURCE_LABELS = {
 def _normalize_title(title: str) -> str:
     """Lowercase, strip gender markers and punctuation for dedup comparison."""
     t = title.lower()
-    t = re.sub(r"\s*\(m/w/d\)|\s*\(w/m/d\)|\s*\(m/f/d\)|\s*\(all genders?\)|\s*\(gn\)|\s*\(f/m/d\)", "", t)
+    t = re.sub(
+        r"\s*\(m/w/d\)|\s*\(w/m/d\)|\s*\(m/f/d\)|\s*\(all genders?\)|\s*\(gn\)|\s*\(f/m/d\)",
+        "",
+        t,
+    )
     t = re.sub(r"[^\w\s]", " ", t)
     return re.sub(r"\s+", " ", t).strip()
 
@@ -62,7 +72,9 @@ def _normalize_company(company: str) -> str:
     return re.sub(r"\s+", " ", c).strip()
 
 
-def _content_hash(title: str, company: Optional[str], location: Optional[str] = None) -> str:
+def _content_hash(
+    title: str, company: Optional[str], location: Optional[str] = None
+) -> str:
     """Hash of normalized title + company (location excluded to handle format variants).
     Used for cross-source deduplication.
     """
@@ -117,7 +129,10 @@ def _upsert_jobs(jobs: list[JobPosting]) -> int:
                     "SELECT company FROM jobs WHERE title_hash = ? AND company IS NOT NULL",
                     (th,),
                 ).fetchall()
-                if any(_companies_overlap(norm_co, _normalize_company(r["company"])) for r in candidates):
+                if any(
+                    _companies_overlap(norm_co, _normalize_company(r["company"]))
+                    for r in candidates
+                ):
                     continue
 
             cursor = conn.execute(
@@ -165,9 +180,9 @@ def _update_run_detail(run_id: int, source: str, **kwargs):
 
 def _run_one(source_key: str, ScraperClass, run_id: int) -> tuple[str, int, bool]:
     """Run a single scraper inside a thread pool worker. Returns (source_key, new_count, had_error)."""
-    _update_run_detail(run_id, source_key,
-                       status="running",
-                       started_at=datetime.utcnow().isoformat())
+    _update_run_detail(
+        run_id, source_key, status="running", started_at=datetime.utcnow().isoformat()
+    )
     try:
         scraper = ScraperClass()
         jobs, error = scraper.run_safe()
@@ -176,31 +191,42 @@ def _run_one(source_key: str, ScraperClass, run_id: int) -> tuple[str, int, bool
             new_count = _upsert_jobs(jobs) if jobs else 0
 
         if error:
-            _update_run_detail(run_id, source_key,
-                               status="failed",
-                               jobs_found=len(jobs),
-                               jobs_new=new_count,
-                               error_msg=error[:500],
-                               finished_at=datetime.utcnow().isoformat())
+            _update_run_detail(
+                run_id,
+                source_key,
+                status="failed",
+                jobs_found=len(jobs),
+                jobs_new=new_count,
+                error_msg=error[:500],
+                finished_at=datetime.utcnow().isoformat(),
+            )
             return source_key, new_count, True
         else:
-            _update_run_detail(run_id, source_key,
-                               status="done",
-                               jobs_found=len(jobs),
-                               jobs_new=new_count,
-                               finished_at=datetime.utcnow().isoformat())
+            _update_run_detail(
+                run_id,
+                source_key,
+                status="done",
+                jobs_found=len(jobs),
+                jobs_new=new_count,
+                finished_at=datetime.utcnow().isoformat(),
+            )
             return source_key, new_count, False
     except Exception as e:
-        _update_run_detail(run_id, source_key,
-                           status="failed",
-                           error_msg=str(e)[:500],
-                           finished_at=datetime.utcnow().isoformat())
+        _update_run_detail(
+            run_id,
+            source_key,
+            status="failed",
+            error_msg=str(e)[:500],
+            finished_at=datetime.utcnow().isoformat(),
+        )
         return source_key, 0, True
 
 
 def run_scraping_pipeline(run_id: int, sources: Optional[list[str]] = None):
     """Run scrapers concurrently. Updates scraping_run_details as each finishes."""
-    active_scrapers = {k: v for k, v in SCRAPER_MAP.items() if sources is None or k in sources}
+    active_scrapers = {
+        k: v for k, v in SCRAPER_MAP.items() if sources is None or k in sources
+    }
 
     # Initialise detail rows
     with db() as conn:
@@ -232,7 +258,11 @@ def run_scraping_pipeline(run_id: int, sources: Optional[list[str]] = None):
         )
 
 
-def start_pipeline_thread(run_id: int, sources: Optional[list[str]] = None) -> threading.Thread:
-    t = threading.Thread(target=run_scraping_pipeline, args=(run_id, sources), daemon=True)
+def start_pipeline_thread(
+    run_id: int, sources: Optional[list[str]] = None
+) -> threading.Thread:
+    t = threading.Thread(
+        target=run_scraping_pipeline, args=(run_id, sources), daemon=True
+    )
     t.start()
     return t

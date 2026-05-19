@@ -25,7 +25,7 @@ class JobPosting:
     company: Optional[str] = None
     location: Optional[str] = None
     employment_type: Optional[str] = None  # 'permanent' | 'freelance' | 'unknown'
-    remote_type: Optional[str] = None      # 'remote' | 'hybrid' | 'onsite' | 'unknown'
+    remote_type: Optional[str] = None  # 'remote' | 'hybrid' | 'onsite' | 'unknown'
     salary_raw: Optional[str] = None
     description: Optional[str] = None
     posted_at: Optional[datetime] = None
@@ -48,8 +48,7 @@ class BaseScraper(ABC):
     location: str = SEARCH_LOCATION
 
     @abstractmethod
-    def scrape(self) -> list[JobPosting]:
-        ...
+    def scrape(self) -> list[JobPosting]: ...
 
     def run_safe(self) -> tuple[list[JobPosting], Optional[str]]:
         try:

@@ -1,4 +1,5 @@
 """Shared helpers for HTML scrapers."""
+
 import re
 import time
 import random
@@ -29,7 +30,9 @@ _PROBE_ORDER = [
 ]
 
 
-def fetch_description(client: httpx.Client, url: str, delay: float = 1.0) -> Optional[str]:
+def fetch_description(
+    client: httpx.Client, url: str, delay: float = 1.0
+) -> Optional[str]:
     """Fetch a job detail page and extract the description text. Returns None on failure."""
     try:
         time.sleep(random.uniform(delay * 0.6, delay * 1.4))

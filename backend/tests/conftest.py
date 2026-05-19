@@ -1,4 +1,5 @@
 """Pytest configuration — makes the app package importable from backend/tests/."""
+
 import sys
 from pathlib import Path
 

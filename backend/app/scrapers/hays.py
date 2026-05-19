@@ -4,6 +4,7 @@ Strategy (2026-03): Hays search pages are JS-rendered and not scrapeable via htt
 Instead, we parse their XML job sitemap which lists current job URLs with lastmod dates.
 Job title and location are extracted from the URL slug.
 """
+
 import re
 import time
 import random
@@ -24,11 +25,25 @@ SITEMAP_URL = "https://www.hays.de/o/sitemaps/de/job-sitemap.xml"
 
 # Keywords matched against the URL slug (lowercase, hyphen-separated)
 ROLE_KEYWORDS = [
-    "data-engineer", "data-architect", "data-scientist", "data-analyst",
-    "machine-learning", "ml-engineer", "ai-engineer", "ki-engineer",
-    "analytics-engineer", "mlops", "nlp-engineer", "bi-engineer",
-    "data-platform", "daten-engineer", "data-modell", "data-integration",
-    "data-warehouse", "databricks", "spark-engineer",
+    "data-engineer",
+    "data-architect",
+    "data-scientist",
+    "data-analyst",
+    "machine-learning",
+    "ml-engineer",
+    "ai-engineer",
+    "ki-engineer",
+    "analytics-engineer",
+    "mlops",
+    "nlp-engineer",
+    "bi-engineer",
+    "data-platform",
+    "daten-engineer",
+    "data-modell",
+    "data-integration",
+    "data-warehouse",
+    "databricks",
+    "spark-engineer",
 ]
 
 
@@ -66,7 +81,10 @@ def _parse_slug(slug: str) -> tuple[str, str]:
 
 def _detect_employment_type(text: str) -> str:
     t = text.lower()
-    if any(w in t for w in ["freelance", "freiberuflich", "selbständig", "contract", "interim"]):
+    if any(
+        w in t
+        for w in ["freelance", "freiberuflich", "selbständig", "contract", "interim"]
+    ):
         return "freelance"
     return "permanent"
 
@@ -88,7 +106,9 @@ class HaysScraper(BaseScraper):
 
         # Fetch sitemap
         try:
-            with httpx.Client(timeout=30, headers=HEADERS, follow_redirects=True) as client:
+            with httpx.Client(
+                timeout=30, headers=HEADERS, follow_redirects=True
+            ) as client:
                 resp = client.get(SITEMAP_URL)
                 if resp.status_code != 200:
                     print(f"[hays] Sitemap returned {resp.status_code}")
@@ -120,7 +140,9 @@ class HaysScraper(BaseScraper):
 
             # Extract slug from URL path
             # e.g. https://www.hays.de/jobsuche/stellenangebote-jobs-detail-...-{id}/1
-            path_match = re.search(r"/jobsuche/(stellenangebote-jobs-detail-[^/]+)", url)
+            path_match = re.search(
+                r"/jobsuche/(stellenangebote-jobs-detail-[^/]+)", url
+            )
             if not path_match:
                 continue
 
@@ -138,16 +160,18 @@ class HaysScraper(BaseScraper):
                     pass
 
             snippet = f"{title} {city}"
-            results.append(JobPosting(
-                source="hays",
-                url=url,
-                title=title,
-                company=None,
-                location=city,
-                employment_type=_detect_employment_type(snippet),
-                remote_type=_detect_remote(snippet),
-                posted_at=posted_at,
-            ))
+            results.append(
+                JobPosting(
+                    source="hays",
+                    url=url,
+                    title=title,
+                    company=None,
+                    location=city,
+                    employment_type=_detect_employment_type(snippet),
+                    remote_type=_detect_remote(snippet),
+                    posted_at=posted_at,
+                )
+            )
 
         print(f"[hays] Sitemap: {len(results)} matching jobs found")
         return results

@@ -1,4 +1,5 @@
 """Description backfill for jobs missing descriptions."""
+
 import json
 import re
 import time
@@ -47,7 +48,9 @@ def _fetch_linkedin(client: httpx.Client, url: str) -> Optional[str]:
             return None
         soup = BeautifulSoup(resp.text, "lxml")
         el = (
-            soup.find("div", class_=re.compile(r"description__text|show-more-less-html", re.I))
+            soup.find(
+                "div", class_=re.compile(r"description__text|show-more-less-html", re.I)
+            )
             or soup.find("section", class_=re.compile(r"description", re.I))
             or soup.find("div", {"id": re.compile(r"job-description", re.I)})
         )
@@ -85,7 +88,9 @@ def _fetch_indeed(client: httpx.Client, url: str) -> Optional[str]:
                 desc = data.get("description", "")
                 if desc and len(desc) > 100:
                     # Strip any HTML tags that leak through
-                    clean = BeautifulSoup(desc, "lxml").get_text(separator="\n", strip=True)
+                    clean = BeautifulSoup(desc, "lxml").get_text(
+                        separator="\n", strip=True
+                    )
                     return clean if len(clean) > 100 else None
             except Exception:
                 continue
@@ -116,7 +121,13 @@ _FETCHERS = {
     "indeed": _fetch_indeed,
 }
 
-_state: dict = {"running": False, "done": 0, "total": 0, "errors": 0, "source_counts": {}}
+_state: dict = {
+    "running": False,
+    "done": 0,
+    "total": 0,
+    "errors": 0,
+    "source_counts": {},
+}
 
 
 def get_backfill_status() -> dict:

@@ -8,6 +8,7 @@ URL construction:
   API field : business-analyst-w-m-d.1936892405.html
   Canonical : https://www.jobware.de/job/business-analyst-w-m-d-1936892405
 """
+
 import re
 import time
 import random
@@ -54,13 +55,15 @@ def _build_job_url(url_field: str) -> str:
     Canonical:  https://www.jobware.de/job/business-analyst-w-m-d-1936892405
     """
     slug = re.sub(r"\.html$", "", url_field)  # strip .html suffix
-    slug = slug.replace(".", "-")              # dot before numeric ID → hyphen
+    slug = slug.replace(".", "-")  # dot before numeric ID → hyphen
     return f"{JOB_BASE}{slug}"
 
 
 def _parse_employment_type(jobtypes: list) -> str:
     names = " ".join(jt.get("name", "").lower() for jt in jobtypes)
-    if any(w in names for w in ["freelance", "freiberuflich", "selbständig", "interim"]):
+    if any(
+        w in names for w in ["freelance", "freiberuflich", "selbständig", "interim"]
+    ):
         return "freelance"
     return "permanent"
 
@@ -90,7 +93,15 @@ def _is_dach(item: dict) -> bool:
     loc_str = item.get("location", "").lower()
     return any(
         w in loc_str
-        for w in ["germany", "deutschland", "austria", "österreich", "switzerland", "schweiz", "remote"]
+        for w in [
+            "germany",
+            "deutschland",
+            "austria",
+            "österreich",
+            "switzerland",
+            "schweiz",
+            "remote",
+        ]
     )
 
 
@@ -110,7 +121,9 @@ class JobwareScraper(BaseScraper):
                         params={"jw_jobname": term, "jw_result_count": 50},
                     )
                     if resp.status_code == 403:
-                        print(f"[jobware] 403 on term '{term}' — API may require session cookie")
+                        print(
+                            f"[jobware] 403 on term '{term}' — API may require session cookie"
+                        )
                         continue
                     resp.raise_for_status()
                     data = resp.json()
@@ -147,21 +160,25 @@ class JobwareScraper(BaseScraper):
 
                         jobtypes = item.get("jobtypes", [])
 
-                        results.append(JobPosting(
-                            source="jobware",
-                            url=job_url,
-                            title=item.get("title", ""),
-                            company=item.get("advertiser", {}).get("name") or None,
-                            location=item.get("location") or None,
-                            employment_type=_parse_employment_type(jobtypes),
-                            remote_type=_parse_remote_type(jobtypes),
-                            salary_raw=_parse_salary(item.get("salary")),
-                            description=item.get("task") or None,
-                            posted_at=posted_at,
-                            external_id=str(item["id"]) if item.get("id") else None,
-                        ))
+                        results.append(
+                            JobPosting(
+                                source="jobware",
+                                url=job_url,
+                                title=item.get("title", ""),
+                                company=item.get("advertiser", {}).get("name") or None,
+                                location=item.get("location") or None,
+                                employment_type=_parse_employment_type(jobtypes),
+                                remote_type=_parse_remote_type(jobtypes),
+                                salary_raw=_parse_salary(item.get("salary")),
+                                description=item.get("task") or None,
+                                posted_at=posted_at,
+                                external_id=str(item["id"]) if item.get("id") else None,
+                            )
+                        )
                     except Exception:
                         continue
 
-        print(f"[jobware] {len(results)} DACH jobs across {len(SEARCH_TERMS)} search terms")
+        print(
+            f"[jobware] {len(results)} DACH jobs across {len(SEARCH_TERMS)} search terms"
+        )
         return results

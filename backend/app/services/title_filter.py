@@ -1,4 +1,5 @@
 """Title-based bulk archiving filter."""
+
 import re
 from datetime import datetime
 from ..database import db
@@ -75,7 +76,7 @@ KEEP_PATTERNS = [
     r"databricks",
     r"snowflake.{0,20}(engineer|architect|developer)",
     r"\bsap data\b",
-    r"\bdatasphere\b",         # SAP Datasphere = data platform
+    r"\bdatasphere\b",  # SAP Datasphere = data platform
     r"data security engineer",
     r"\bbi[-\s]?(engineer|developer)\b",
     r"business intelligence (engineer|developer)",

@@ -1,4 +1,5 @@
 """Unit tests for the title and age filters in scrapers/filters.py."""
+
 from datetime import datetime, timedelta
 
 from app.scrapers.filters import apply_filters, _passes_title, _passes_age
@@ -45,15 +46,21 @@ class TestPassesTitle:
 
 class TestPassesAge:
     def test_recent_job_passes(self):
-        job = _make_job("Data Engineer", posted_at=datetime.utcnow() - timedelta(days=3))
+        job = _make_job(
+            "Data Engineer", posted_at=datetime.utcnow() - timedelta(days=3)
+        )
         assert _passes_age(job) is True
 
     def test_old_job_blocked(self):
-        job = _make_job("Data Engineer", posted_at=datetime.utcnow() - timedelta(days=20))
+        job = _make_job(
+            "Data Engineer", posted_at=datetime.utcnow() - timedelta(days=20)
+        )
         assert _passes_age(job) is False
 
     def test_exactly_at_cutoff_passes(self):
-        job = _make_job("Data Engineer", posted_at=datetime.utcnow() - timedelta(days=13))
+        job = _make_job(
+            "Data Engineer", posted_at=datetime.utcnow() - timedelta(days=13)
+        )
         assert _passes_age(job) is True
 
     def test_none_date_passes(self):

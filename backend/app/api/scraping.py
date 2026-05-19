@@ -19,7 +19,9 @@ def _row_to_run(row, details=None) -> dict:
 
 def _get_run_with_details(run_id: int) -> Optional[dict]:
     with db() as conn:
-        run = conn.execute("SELECT * FROM scraping_runs WHERE id = ?", (run_id,)).fetchone()
+        run = conn.execute(
+            "SELECT * FROM scraping_runs WHERE id = ?", (run_id,)
+        ).fetchone()
         if not run:
             return None
         details = conn.execute(
@@ -87,7 +89,7 @@ def stream_run(run_id: int):
                     "SELECT * FROM scraping_runs WHERE id = ?", (run_id,)
                 ).fetchone()
                 if not run:
-                    yield "event: error\ndata: {\"error\": \"Run not found\"}\n\n"
+                    yield 'event: error\ndata: {"error": "Run not found"}\n\n'
                     return
 
                 details = conn.execute(
@@ -98,7 +100,9 @@ def stream_run(run_id: int):
             # Emit updates for changed sources
             for detail in details:
                 key = detail["source"]
-                state_sig = f"{detail['status']}:{detail['jobs_found']}:{detail['jobs_new']}"
+                state_sig = (
+                    f"{detail['status']}:{detail['jobs_found']}:{detail['jobs_new']}"
+                )
                 if seen_states.get(key) != state_sig:
                     seen_states[key] = state_sig
                     data = json.dumps(dict(detail))

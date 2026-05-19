@@ -92,7 +92,9 @@ def init_db():
         except Exception:
             pass
         try:
-            conn.execute("ALTER TABLE jobs ADD COLUMN starred INTEGER NOT NULL DEFAULT 0")
+            conn.execute(
+                "ALTER TABLE jobs ADD COLUMN starred INTEGER NOT NULL DEFAULT 0"
+            )
         except Exception:
             pass
         try:
@@ -104,7 +106,9 @@ def init_db():
         except Exception:
             pass
         try:
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_title_hash ON jobs(title_hash)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_title_hash ON jobs(title_hash)"
+            )
         except Exception:
             pass
         try:

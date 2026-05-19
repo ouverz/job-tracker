@@ -8,11 +8,19 @@ PEER_TITLE_MAP = {
     "machine learning": ["Machine Learning Engineer", "ML Engineer", "MLOps"],
     "data scientist": ["Data Scientist", "ML Engineer", "Research Scientist"],
     "data analyst": ["Data Analyst", "Analytics Engineer", "Business Analyst"],
-    "software engineer": ["Software Engineer", "Backend Engineer", "Full Stack Engineer"],
+    "software engineer": [
+        "Software Engineer",
+        "Backend Engineer",
+        "Full Stack Engineer",
+    ],
     "backend engineer": ["Backend Engineer", "Software Engineer", "Platform Engineer"],
     "frontend engineer": ["Frontend Engineer", "UI Engineer", "Full Stack Engineer"],
     "devops": ["DevOps Engineer", "Platform Engineer", "SRE"],
-    "platform engineer": ["Platform Engineer", "DevOps Engineer", "Infrastructure Engineer"],
+    "platform engineer": [
+        "Platform Engineer",
+        "DevOps Engineer",
+        "Infrastructure Engineer",
+    ],
 }
 
 MANAGER_TITLES = '"Head of Data" OR "Director" OR "Engineering Manager" OR "VP of Engineering" OR "VP Engineering"'
@@ -35,23 +43,24 @@ def get_search_links(company: str, job_title: str) -> list[dict]:
         {
             "label": "Hiring Managers",
             "type": "managers",
-            "url": "https://www.google.com/search?" + urlencode({
-                "q": f"site:linkedin.com/in {company_q} {MANAGER_TITLES}"
-            }),
+            "url": "https://www.google.com/search?"
+            + urlencode({"q": f"site:linkedin.com/in {company_q} {MANAGER_TITLES}"}),
         },
         {
             "label": "Team Members",
             "type": "peers",
-            "url": "https://www.google.com/search?" + urlencode({
-                "q": f"site:linkedin.com/in {company_q} {_infer_peer_titles(job_title)}"
-            }),
+            "url": "https://www.google.com/search?"
+            + urlencode(
+                {
+                    "q": f"site:linkedin.com/in {company_q} {_infer_peer_titles(job_title)}"
+                }
+            ),
         },
         {
             "label": "Recruiters",
             "type": "recruiters",
-            "url": "https://www.google.com/search?" + urlencode({
-                "q": f"site:linkedin.com/in {company_q} {RECRUITER_TITLES}"
-            }),
+            "url": "https://www.google.com/search?"
+            + urlencode({"q": f"site:linkedin.com/in {company_q} {RECRUITER_TITLES}"}),
         },
     ]
     return links

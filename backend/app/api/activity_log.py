@@ -8,14 +8,14 @@ router = APIRouter(prefix="/api/activity-log", tags=["activity-log"])
 
 # (key, label, auto_tracked, default_target)
 ACTIVITIES = [
-    ("applications_sent",            "Applications sent",            True,  5),
-    ("outreach_sequences",           "Outreach sequences started",   False, 5),
+    ("applications_sent", "Applications sent", True, 5),
+    ("outreach_sequences", "Outreach sequences started", False, 5),
     ("hiring_manager_conversations", "Hiring manager conversations", False, 0),
-    ("linkedin_posts",               "LinkedIn posts published",     False, 1),
-    ("first_round_interviews",       "First-round interviews",       False, 0),
-    ("second_round_processes",       "Second-round processes",       False, 0),
-    ("network_reconnects",           "Network reconnects sent",      True,  5),
-    ("github_commits",               "GitHub commits",               False, 3),
+    ("linkedin_posts", "LinkedIn posts published", False, 1),
+    ("first_round_interviews", "First-round interviews", False, 0),
+    ("second_round_processes", "Second-round processes", False, 0),
+    ("network_reconnects", "Network reconnects sent", True, 5),
+    ("github_commits", "GitHub commits", False, 3),
 ]
 
 _DEFAULT_TARGETS = {key: tgt for key, _, _, tgt in ACTIVITIES}
@@ -73,14 +73,16 @@ def get_activity_log(week: Optional[str] = Query(None)):
         else:
             status = "behind"
 
-        activities.append({
-            "key": key,
-            "label": label,
-            "auto_tracked": auto_tracked,
-            "actual": actual,
-            "target": target,
-            "status": status,
-        })
+        activities.append(
+            {
+                "key": key,
+                "label": label,
+                "auto_tracked": auto_tracked,
+                "actual": actual,
+                "target": target,
+                "status": status,
+            }
+        )
 
     return {"week_start": week_start, "week_end": week_end, "activities": activities}
 
@@ -107,7 +109,9 @@ def update_activity(week_start: str, activity: str, body: ActivityUpdate):
             )
         else:
             new_actual = body.actual if body.actual is not None else 0
-            new_target = body.target if body.target is not None else _DEFAULT_TARGETS[activity]
+            new_target = (
+                body.target if body.target is not None else _DEFAULT_TARGETS[activity]
+            )
             conn.execute(
                 "INSERT INTO weekly_log (week_start, activity, actual, target) VALUES (?, ?, ?, ?)",
                 (week_start, activity, new_actual, new_target),
