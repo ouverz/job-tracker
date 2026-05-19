@@ -145,6 +145,18 @@ frontend/  React 18 · Vite · Tailwind CSS · TanStack Query
 
 Interactive docs: **http://localhost:8000/docs**
 
+## Development
+
+```bash
+# Dev mode — hot-reload on both servers
+./start.sh --dev
+
+# Run tests
+cd backend && .venv/bin/pytest tests/ -v
+```
+
+**Adding a new scraper:** create `backend/app/scrapers/<name>.py`, subclass `BaseScraper`, implement `scrape() -> list[JobPosting]`, register it in `runner.py`. Look at `arbeitnow.py` (REST API) or `jobware.py` (JSON API) as reference implementations.
+
 ## Configuration reference
 
 | Variable | Default | Description |
