@@ -20,9 +20,16 @@ from .api import (
 )
 from .scrapers.runner import start_pipeline_thread
 
-app = FastAPI(title="Job Tracker", version="1.0.0")
+_ENABLE_DOCS = os.getenv("ENABLE_DOCS", "").strip().lower() == "true"
+app = FastAPI(
+    title="Job Tracker",
+    version="1.0.0",
+    docs_url="/docs" if _ENABLE_DOCS else None,
+    redoc_url="/redoc" if _ENABLE_DOCS else None,
+    openapi_url="/openapi.json" if _ENABLE_DOCS else None,
+)
 
-_API_KEY = os.getenv("APP_API_KEY")
+_API_KEY = os.getenv("APP_API_KEY", "").strip() or None
 if not _API_KEY:
     print("⚠️  APP_API_KEY is not set — API is open to anyone who can reach this host")
 
@@ -44,8 +51,8 @@ app.add_middleware(
         "http://localhost:8000",
     ],
     allow_origin_regex=r"http://(192\.168\.\d+\.\d+|100\.\d+\.\d+\.\d+)(:\d+)?",
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "X-API-Key"],
 )
 
 scheduler = AsyncIOScheduler()

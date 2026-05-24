@@ -57,9 +57,12 @@ def add_contact(job_id: int, payload: ContactCreate):
     return dict(row)
 
 
+_ALLOWED_CONTACT_FIELDS = {"name", "linkedin_url", "role", "notes", "reached_out", "reached_out_at"}
+
+
 @router.patch("/contacts/{contact_id}", response_model=Contact)
 def update_contact(contact_id: int, payload: ContactUpdate):
-    updates = {k: v for k, v in payload.model_dump(exclude_unset=True).items()}
+    updates = {k: v for k, v in payload.model_dump(exclude_unset=True).items() if k in _ALLOWED_CONTACT_FIELDS}
     if not updates:
         raise HTTPException(status_code=422, detail="No fields to update")
     now = datetime.utcnow().isoformat()

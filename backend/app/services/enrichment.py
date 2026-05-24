@@ -7,12 +7,27 @@ import random
 import threading
 from datetime import datetime
 from typing import Optional
+from urllib.parse import urlparse
 
 import httpx
 from bs4 import BeautifulSoup
 
 from ..database import db
 from ..constants import ENRICH_SLEEP_MIN_SEC, ENRICH_SLEEP_MAX_SEC
+
+_ALLOWED_HOSTS: dict[str, set[str]] = {
+    "stepstone": {"www.stepstone.de", "stepstone.de"},
+    "linkedin": {"www.linkedin.com", "linkedin.com", "de.linkedin.com"},
+    "indeed": {"de.indeed.com", "www.indeed.com", "indeed.com"},
+}
+
+
+def _url_is_safe(url: str, source: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        return parsed.scheme in ("http", "https") and parsed.hostname in _ALLOWED_HOSTS.get(source, set())
+    except Exception:
+        return False
 
 HEADERS = {
     "User-Agent": (
@@ -139,7 +154,7 @@ def _worker(rows: list) -> None:
     with httpx.Client(timeout=20, follow_redirects=True) as client:
         for row in rows:
             fetcher = _FETCHERS.get(row["source"])
-            if not fetcher:
+            if not fetcher or not _url_is_safe(row["url"], row["source"]):
                 _state["done"] += 1
                 continue
             desc = fetcher(client, row["url"])

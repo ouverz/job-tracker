@@ -57,7 +57,11 @@ def _cv_path() -> Path:
     p = Path(settings.cv_path)
     if not p.is_absolute():
         p = Path(__file__).parent.parent.parent / settings.cv_path
-    return p
+    resolved = p.resolve()
+    root = Path(__file__).parent.parent.parent.resolve()
+    if not resolved.is_relative_to(root):
+        raise HTTPException(500, "Invalid CV path configuration")
+    return resolved
 
 
 @router.post("/upload")

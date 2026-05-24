@@ -39,6 +39,7 @@ Thumbs.db
 
 # One-off utility / debug scripts (kept locally, not published)
 backfill_*.py
+backend/backfill.py
 backend/debug_arbeitnow.py
 
 # Claude Code project settings (local only)

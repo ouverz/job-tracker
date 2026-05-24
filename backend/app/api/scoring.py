@@ -14,8 +14,8 @@ def score_single_job(job_id: int):
         return result
     except ValueError as e:
         raise HTTPException(404, str(e))
-    except RuntimeError as e:
-        raise HTTPException(500, str(e))
+    except RuntimeError:
+        raise HTTPException(500, "Scoring failed — check server logs")
 
 
 @router.post("/batch")
@@ -61,8 +61,8 @@ def batch_score(
             if status["running"]:
                 return {"queued": 0, "message": "Batch already running", **status}
         return {"queued": queued, "message": f"Scoring {queued} jobs in background"}
-    except RuntimeError as e:
-        raise HTTPException(500, str(e))
+    except RuntimeError:
+        raise HTTPException(500, "Scoring failed — check server logs")
 
 
 @router.get("/batch/status")
