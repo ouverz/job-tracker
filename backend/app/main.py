@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 import os
+import secrets
 from pathlib import Path
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -20,6 +21,20 @@ from .api import (
 from .scrapers.runner import start_pipeline_thread
 
 app = FastAPI(title="Job Tracker", version="1.0.0")
+
+_API_KEY = os.getenv("APP_API_KEY")
+if not _API_KEY:
+    print("⚠️  APP_API_KEY is not set — API is open to anyone who can reach this host")
+
+
+@app.middleware("http")
+async def require_api_key(request: Request, call_next):
+    if _API_KEY and request.url.path != "/api/health":
+        incoming = request.headers.get("X-API-Key", "")
+        if not secrets.compare_digest(incoming, _API_KEY):
+            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    return await call_next(request)
+
 
 app.add_middleware(
     CORSMiddleware,
